@@ -1,0 +1,38 @@
+@import "./tallwind.css";
+
+/* 모든 요소의 기본 마진, 패딩 제거 및 박스 모델 통일 */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 리스트 기본 스타일 제거 */
+ul,
+ol {
+  list-style: none;
+}
+
+/* 링크 기본 스타일 제거 */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* 버튼 기본 스타일 제거 및 포인터 설정 */
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* 이미지 등 미디어 요소의 기본 스타일 처리 */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* 기타 필요에 따라 추가 리셋 */
