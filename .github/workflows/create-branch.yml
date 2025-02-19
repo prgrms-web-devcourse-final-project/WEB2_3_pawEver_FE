@@ -1,0 +1,31 @@
+name: "Create Branch from Issue"
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract branch details from issue body
+        id: extract_branch
+        run: |
+          PREFIX=$(echo "${{ github.event.issue.body }}" | grep "브랜치 타입 선택 (prefix)" | sed -E 's/.*: (.*)/\1/')
+          SUFFIX=$(echo "${{ github.event.issue.body }}" | grep "브랜치 이름 (접미사, suffix)" | sed -E 's/.*: (.*)/\1/')
+          BRANCH_NAME="${PREFIX}/${SUFFIX}"
+          echo "Branch Name: $BRANCH_NAME"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Checkout default branch (dev)
+        uses: actions/checkout@v4
+        with:
+          ref: dev # 기본 브랜치가 dev인 경우
+
+      - name: Create new branch from dev
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
