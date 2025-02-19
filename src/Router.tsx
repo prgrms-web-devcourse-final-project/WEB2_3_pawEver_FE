@@ -10,6 +10,7 @@ import EditCommunity from "./pages/editcommunity/EditCommunity";
 import UserPage from "./pages/userpage/UserPage";
 import NotFound from "./pages/notfound/NotFound";
 import RootLayout from "./components/layout/RootLayout";
+import Donation from "./pages/donation/Donation";
 
 export default function Router() {
   return (
@@ -24,6 +25,7 @@ export default function Router() {
         <Route path="/CommunityDetail/:id" element={<CommunityDetail />} />
         <Route path="/EditCommunity" element={<EditCommunity />} />
         <Route path="/UserPage/:userId" element={<UserPage />} />
+        <Route path="/Donation" element={<Donation />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
