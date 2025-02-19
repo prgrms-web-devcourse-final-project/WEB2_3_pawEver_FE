@@ -3,6 +3,15 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {},
+    extend: {
+      colors: {
+        main: "#09ACFB",
+        point: "#0187EE",
+      },
+      fontFamily: {
+        sans: ["Pretendard", "sans-serif"],
+      },
+    },
   },
   plugins: [],
   future: {

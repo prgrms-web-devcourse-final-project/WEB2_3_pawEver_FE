@@ -1,3 +1,5 @@
+Router;
+
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home/Home";
 import AnimalBoard from "./pages/AnimalBoard/AnimalBoard";
@@ -9,19 +11,23 @@ import CommunityDetail from "./pages/CommunityDetail/CommunityDetail";
 import EditCommunity from "./pages/EditCommunity/EditCommunity";
 import UserPage from "./pages/UserPage/UserPage";
 import NotFound from "./pages/NotFound/NotFound";
+import RootLayout from "./components/layout/RootLayout";
 
 export default function Router() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/AnimalBoard" element={<AnimalBoard />} />
-      <Route path="/AnimalDetail/:id" element={<AnimalDetail />} />
-      <Route path="/EditReservation" element={<EditReservation />} />
-      <Route path="/Matching" element={<Matching />} />
-      <Route path="/Community" element={<Community />} />
-      <Route path="/CommunityDetail/:id" element={<CommunityDetail />} />
-      <Route path="/EditCommunity" element={<EditCommunity />} />
-      <Route path="/UserPage/:userId" element={<UserPage />} />
+      <Route element={<RootLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/AnimalBoard" element={<AnimalBoard />} />
+        <Route path="/AnimalDetail/:id" element={<AnimalDetail />} />
+        <Route path="/EditReservation" element={<EditReservation />} />
+        <Route path="/Matching" element={<Matching />} />
+        <Route path="/Community" element={<Community />} />
+        <Route path="/CommunityDetail/:id" element={<CommunityDetail />} />
+        <Route path="/EditCommunity" element={<EditCommunity />} />
+        <Route path="/UserPage/:userId" element={<UserPage />} />
+      </Route>
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
