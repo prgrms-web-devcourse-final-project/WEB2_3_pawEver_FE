@@ -1,5 +1,3 @@
-Router;
-
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home/Home";
 import AnimalBoard from "./pages/AnimalBoard/AnimalBoard";
@@ -7,7 +5,7 @@ import AnimalDetail from "./pages/AnimalDetail/AnimalDetail";
 import EditReservation from "./pages/EditReservation/EditReservation";
 import Matching from "./pages/Matching/Matching";
 import Community from "./pages/community/Community";
-import CommunityDetail from "./pages/CommunityDetail/CommunityDetail";
+import CommunityDetail from "./pages/communitydetail/CommunityDetail";
 import EditCommunity from "./pages/EditCommunity/EditCommunity";
 import UserPage from "./pages/UserPage/UserPage";
 import NotFound from "./pages/NotFound/NotFound";
