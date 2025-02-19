@@ -1,14 +1,14 @@
 import { Route, Routes } from "react-router-dom";
-import Home from "./components/pages/Home/Home";
-import AnimalBoard from "./components/pages/AnimalBoard/AnimalBoard";
-import AnimalDetail from "./components/pages/AnimalDetail/AnimalDetail";
-import EditReservation from "./components/pages/EditReservation/EditReservation";
-import Matching from "./components/pages/Matching/Matching";
-import Community from "./components/pages/Community/Community";
-import CommunityDetail from "./components/pages/CommunityDetail/CommunityDetail";
-import EditCommunity from "./components/pages/EditCommunity/EditCommunity";
-import UserPage from "./components/pages/UserPage/UserPage";
-import NotFound from "./components/pages/NotFound/NotFound";
+import Home from "./pages/Home/Home";
+import AnimalBoard from "./pages/AnimalBoard/AnimalBoard";
+import AnimalDetail from "./pages/AnimalDetail/AnimalDetail";
+import EditReservation from "./pages/EditReservation/EditReservation";
+import Matching from "./pages/Matching/Matching";
+import Community from "./pages/Community/Community";
+import CommunityDetail from "./pages/CommunityDetail/CommunityDetail";
+import EditCommunity from "./pages/EditCommunity/EditCommunity";
+import UserPage from "./pages/UserPage/UserPage";
+import NotFound from "./pages/NotFound/NotFound";
 
 export default function Router() {
   return (
