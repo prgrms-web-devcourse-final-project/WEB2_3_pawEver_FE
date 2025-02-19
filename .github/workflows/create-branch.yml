@@ -21,7 +21,7 @@ jobs:
       - name: Checkout default branch (dev)
         uses: actions/checkout@v4
         with:
-          ref: dev # 기본 브랜치가 dev인 경우
+          ref: dev #dev 인경우
 
       - name: Create new branch from dev
         run: |
