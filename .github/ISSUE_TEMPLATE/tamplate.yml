@@ -14,13 +14,13 @@ body:
         - "feature"
         - "fix"
         - "style"
-      default: "feature"
+      default: 0
 
   - type: input
     id: branch_suffix
     attributes:
       label: "브랜치 이름 (접미사, suffix)"
-      description: "브랜치 이름의 마지막 부분을 입력하세요. (예: login-button-bug, add-user-auth)"
+      description: "브랜치 이름의 마지막 부분을 입력하세요.. (예: login-button-bug, add-user-auth)"
       placeholder: "login-button-bug"
 
   - type: markdown
