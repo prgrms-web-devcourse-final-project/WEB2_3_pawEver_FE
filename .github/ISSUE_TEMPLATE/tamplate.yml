@@ -1,0 +1,26 @@
+name: "작업 요청"
+description: "새로운 작업을 위한 이슈를 생성합니다."
+title: "[작업] "
+labels: []
+assignees: []
+
+body:
+  - type: dropdown
+    id: branch_type
+    attributes:
+      label: "브랜치 타입 선택"
+      description: "작업 유형을 선택하세요. (예: 기능 개발, 버그 수정, 스타일 변경)"
+      options:
+        - "feature"
+        - "fix"
+        - "style"
+      default: "feature"
+  - type: input
+    id: branch_suffix
+    attributes:
+      label: "브랜치 이름 (접미사)"
+      description: "예시: login-button-fix (최종 브랜치 이름은 [브랜치 타입]/[입력한 값] 형식이 됩니다.)"
+      placeholder: "login-button-fix"
+  - type: markdown
+    attributes:
+      value: "**🔹 최종 브랜치 이름 예시:** `feature/login-button-fix`"
