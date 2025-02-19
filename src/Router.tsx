@@ -6,10 +6,11 @@ import AnimalBoard from "./pages/AnimalBoard/AnimalBoard";
 import AnimalDetail from "./pages/AnimalDetail/AnimalDetail";
 import EditReservation from "./pages/EditReservation/EditReservation";
 import Matching from "./pages/Matching/Matching";
-import Community from "./pages/community/Community";
+import Community from "./pages/Community/Community";
 import CommunityDetail from "./pages/CommunityDetail/CommunityDetail";
 import EditCommunity from "./pages/EditCommunity/EditCommunity";
 import UserPage from "./pages/UserPage/UserPage";
+import Donation from "./pages/Donation/Donation";
 import NotFound from "./pages/NotFound/NotFound";
 import RootLayout from "./components/layout/RootLayout";
 
@@ -26,6 +27,7 @@ export default function Router() {
         <Route path="/CommunityDetail/:id" element={<CommunityDetail />} />
         <Route path="/EditCommunity" element={<EditCommunity />} />
         <Route path="/UserPage/:userId" element={<UserPage />} />
+        <Route path="/Donation" element={<Donation />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

@@ -4,6 +4,7 @@ import { twMerge } from "tailwind-merge";
 interface ButtonProps {
   bgcolor?: string;
   text?: string;
+  className?: string;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   children: React.ReactNode;
 }
@@ -11,6 +12,7 @@ interface ButtonProps {
 const Button: React.FC<ButtonProps> = ({
   bgcolor = "bg-main",
   text = "text-white",
+  className = "",
   onClick,
   children,
 }) => {
@@ -19,7 +21,9 @@ const Button: React.FC<ButtonProps> = ({
       onClick={onClick}
       className={twMerge(
         `px-4 py-2 rounded-lg font-bold transition-colors flex items-center justify-center border-solid border-2 hover:bg-point`,
-        `${bgcolor} ${text}`
+        bgcolor,
+        text,
+        className
       )}
     >
       {children}
