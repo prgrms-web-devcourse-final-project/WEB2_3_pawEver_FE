@@ -14,7 +14,7 @@ body:
         - "feature"
         - "fix"
         - "style"
-      default: "feature"
+      default: 0
 
   - type: input
     id: branch_suffix
