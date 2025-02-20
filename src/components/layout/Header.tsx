@@ -12,6 +12,13 @@ export default function Header() {
   const handleLogout = () => setIsLoggined(false);
   const handleIsMenuOpen = () => setIsMenuOpen((prev) => !prev);
 
+  const navLinks = [
+    { to: "/AnimalBoard", label: "입양동물찾기" },
+    { to: "/Community", label: "커뮤니티" },
+    { to: "/EditReservation", label: "예약/상담" },
+    { to: "/Donation", label: "후원하기" },
+  ];
+
   return (
     <header className="sticky top-0 z-50 w-full">
       <div className="bg-white w-full">
@@ -24,32 +31,16 @@ export default function Header() {
               <img src={logo} alt="logo" className="pr-2" />
               PAWEVER
             </Link>
-
             <nav className="hidden md:flex space-x-6 text-base font-medium">
-              <Link
-                to="/AnimalBoard"
-                className="hover:text-main whitespace-nowrap"
-              >
-                입양동물찾기
-              </Link>
-              <Link
-                to="/Community"
-                className="hover:text-main whitespace-nowrap"
-              >
-                커뮤니티
-              </Link>
-              <Link
-                to="/EditReservation"
-                className="hover:text-main whitespace-nowrap"
-              >
-                예약/상담
-              </Link>
-              <Link
-                to="/Donation"
-                className="hover:text-main whitespace-nowrap"
-              >
-                후원하기
-              </Link>
+              {navLinks.map(({ to, label }, index) => (
+                <Link
+                  key={index}
+                  to={to}
+                  className="hover:text-main whitespace-nowrap"
+                >
+                  {label}
+                </Link>
+              ))}
             </nav>
           </div>
 
@@ -64,16 +55,14 @@ export default function Header() {
                 로그아웃
               </ButtonComponent>
             ) : (
-              <>
-                <ButtonComponent
-                  bgcolor="white"
-                  text="black"
-                  className="border-[1px] border-gray-300 hover:bg-white font-medium"
-                  onClick={handleQuickLogin}
-                >
-                  로그인
-                </ButtonComponent>
-              </>
+              <ButtonComponent
+                onClick={handleQuickLogin}
+                bgcolor="white"
+                text="black"
+                className="border-[1px] border-gray-300 hover:bg-white font-medium"
+              >
+                로그인
+              </ButtonComponent>
             )}
           </div>
 
