@@ -1,13 +1,14 @@
 import Header from "./Header";
-// import Sidebar from "./SideBarM";
 import Footer from "./Footer";
 import { Outlet } from "react-router-dom";
 
 export default function RootLayout() {
   return (
-    <div>
+    <div className="w-full min-h-screen">
       <Header />
-      <Outlet />
+      <main className="max-w-[1200px] mx-auto px-4">
+        <Outlet />
+      </main>
       <Footer />
     </div>
   );
