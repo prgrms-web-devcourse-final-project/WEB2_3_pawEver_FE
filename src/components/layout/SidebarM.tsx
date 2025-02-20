@@ -29,10 +29,17 @@ const SidebarM: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <button onClick={onClose} className="text-gray-600">
             ✖
           </button>
+          <Link
+            to="/"
+            className="flex gap-2 justify-center items-center
+          "
+            onClick={onClose}
+          >
+            <img src={logo} alt="PAWEVER Logo" className="h-8 mx-auto" />
+            <p className="font-bold text-sm"> PAWEVER </p>
+          </Link>
         </div>
         <div className="p-6 text-center">
-          <img src={logo} alt="PAWEVER Logo" className="h-8 mx-auto" />
-          <p className="font-bold text-lg mb-2"> PAWEVER </p>
           <p className="font-semibold text-gray-700">
             어서오세요 <span className="text-main font-bold">우정완</span>님
           </p>
@@ -42,7 +49,7 @@ const SidebarM: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
         <nav className="flex flex-col space-y-4 p-4">
           <Link
-            to="/AnimalDetail/1"
+            to="/AnimalBoard"
             onClick={onClose}
             className="flex items-center space-x-2 text-gray-700"
           >

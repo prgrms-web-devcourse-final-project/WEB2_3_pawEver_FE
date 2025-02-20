@@ -18,11 +18,11 @@ export default function Router() {
       <Route element={<RootLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/AnimalBoard" element={<AnimalBoard />} />
-        <Route path="/AnimalDetail/:id" element={<AnimalDetail />} />
+        <Route path="/AnimalBoard/:id" element={<AnimalDetail />} />
         <Route path="/EditReservation" element={<EditReservation />} />
         <Route path="/Matching" element={<Matching />} />
         <Route path="/Community" element={<Community />} />
-        <Route path="/CommunityDetail/:id" element={<CommunityDetail />} />
+        <Route path="/Community/:id" element={<CommunityDetail />} />
         <Route path="/EditCommunity" element={<EditCommunity />} />
         <Route path="/UserPage/:userId" element={<UserPage />} />
         <Route path="/Donation" element={<Donation />} />
