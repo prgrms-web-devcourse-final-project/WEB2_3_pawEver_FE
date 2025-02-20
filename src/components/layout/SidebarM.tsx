@@ -49,7 +49,7 @@ const SidebarM: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
         <nav className="flex flex-col space-y-4 p-4">
           <Link
-            to="/AnimalDetail/1"
+            to="/AnimalBoard"
             onClick={onClose}
             className="flex items-center space-x-2 text-gray-700"
           >
