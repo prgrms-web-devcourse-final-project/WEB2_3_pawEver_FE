@@ -3,7 +3,6 @@ import main_img from "../../assets/images/main_img.png";
 import Dropdown from "../../common/DropDownComponent";
 import AnimalCard from "../../common/AnimalCard";
 
-// 스크롤 가능한 카드 섹션 컴포넌트
 interface CardSectionProps {
   title: string;
   cards: number;
@@ -22,29 +21,28 @@ const CardSection = ({ title, cards }: CardSectionProps) => {
   };
 
   return (
-    <div className="w-full max-w-[1060px] mx-auto px-4">
+    <div>
       <div className="flex items-center justify-between mb-4">
-        <p className="font-semibold text-[22px]">{title}</p>
+        <p className="font-semibold text-[1.375rem]">{title}</p>
         <div className="flex items-center">
-          <p className="font-semibold text-[16px] text-gray-400">전체보기</p>
+          <p className="font-semibold text-base text-gray-400">전체보기</p>
           <div className="hidden sm:flex items-center ml-2 w-[61px] h-[28px] rounded-lg border border-gray-300">
             <button
               onClick={() => scroll("left")}
               className="w-1/2 h-full text-gray-300 flex items-center justify-center"
             >
-              <span className="text-[18px]">{"<"}</span>
+              <span className="text-[1.125rem]">{"<"}</span>
             </button>
             <div className="w-[1px] h-full bg-gray-300"></div>
             <button
               onClick={() => scroll("right")}
               className="w-1/2 h-full text-gray-300 flex items-center justify-center"
             >
-              <span className="text-[18px]">{">"}</span>
+              <span className="text-[1.125rem]">{">"}</span>
             </button>
           </div>
         </div>
       </div>
-
       <div className="w-full overflow-hidden">
         <div
           ref={containerRef}
@@ -78,30 +76,29 @@ export default function Home() {
 
   return (
     <div className="flex flex-col justify-center">
-      <div className="w-full max-w-[1060px] min-h-[380px] sm:min-h-[420px] bg-[#E3F6FF] mt-6 mb-6 mx-auto flex flex-col sm:flex-row items-center justify-center sm:justify-between px-6 py-12 sm:py-14 rounded-lg relative">
+      <section className="bg-[#E3F6FF] mt-6 mb-6 flex flex-col sm:flex-row items-center justify-center sm:justify-between px-6 py-12 sm:py-14 rounded-lg relative">
         <div className="text-center sm:text-left flex flex-col items-center sm:items-start">
-          <p className="text-[22px] sm:text-[26px] md:text-[28px] font-semibold leading-snug">
+          <p className="text-[1.375rem] sm:text-[1.625rem] md:text-[1.75rem] font-semibold leading-snug">
             나에게 맞는 입양동물이
             <br className="hidden sm:block" />
             궁금하다면?
           </p>
-          <button className="mt-4 w-[112px] h-[48px] bg-[#09ACFB] text-white rounded-lg hover:bg-blue-600">
+          <button className="mt-4 w-full sm:w-auto px-4 py-2 bg-[#09ACFB] text-white rounded-lg hover:bg-blue-600">
             찾아보기
           </button>
         </div>
         <img
           src={main_img}
           alt="Main Image"
-          className="w-[180px] sm:w-[250px] md:w-auto mt-4 sm:mt-0"
+          className="w-full sm:w-[420px] mt-4 sm:mt-0"
         />
-      </div>
-
-      <div className="w-full min-h-[140px] sm:h-[154px] bg-gray-50 mb-6 items-center hidden sm:flex">
-        <div className="w-full max-w-[1060px] mx-auto flex flex-wrap sm:flex-nowrap">
+      </section>
+      <section className="relative left-1/2 -translate-x-1/2 w-screen bg-gray-50 mb-6 hidden sm:flex h-[8.5rem]">
+        <div className="w-full max-w-[1200px] mx-auto flex flex-wrap sm:flex-nowrap items-center justify-center h-full px-4">
           {filters.map((filter, index) => (
             <div
               key={index}
-              className={`w-full sm:w-[259px] flex flex-col ${
+              className={`w-full sm:max-w-[259px] flex flex-col ${
                 index > 0 ? "ml-2" : ""
               }`}
             >
@@ -110,10 +107,10 @@ export default function Home() {
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
+      {/* Card Sections */}
       <CardSection title="보호중인 동물" cards={9} />
-
       <div className="mt-8">
         <CardSection title="User님 근처의 동물" cards={5} />
       </div>
