@@ -225,7 +225,7 @@ export default function Home() {
                 index > 0 ? "ml-2" : ""
               }`}
             >
-              <p className="text-sm text-[#414651]">{filter.label}</p>
+              <p className="text-sm text-[#414651] mb-1">{filter.label}</p>
               <Dropdown options={filter.options} />
             </div>
           ))}
