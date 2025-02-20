@@ -62,7 +62,12 @@ const Header = () => {
       {/* Desktop Buttons */}
       <div className="hidden md:flex items-center space-x-4">
         {isLoggined ? (
-          <ButtonComponent onClick={handleLogout} bgcolor="bg-main">
+          <ButtonComponent
+            onClick={handleLogout}
+            bgcolor="white"
+            text="black"
+            className="border-[1px] border-gray-300 hover:bg-white font-medium"
+          >
             로그아웃
           </ButtonComponent>
         ) : (
@@ -70,7 +75,14 @@ const Header = () => {
             <ButtonComponent onClick={handleQuickLogin}>
               빠른 로그인
             </ButtonComponent>
-            <ButtonComponent>로그인</ButtonComponent>
+            <ButtonComponent
+              bgcolor="white"
+              text="black"
+              className="border-[1px] border-gray-300 hover:bg-white font-medium"
+              onClick={handleQuickLogin}
+            >
+              로그인
+            </ButtonComponent>
           </>
         )}
       </div>

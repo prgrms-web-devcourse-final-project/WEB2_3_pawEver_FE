@@ -42,7 +42,7 @@ const Dropdown: React.FC<DropdownProps> = ({
 
   return (
     <div
-      className="relative border-2 border-main rounded-lg"
+      className="relative border-[1px] hover:border-main bg-white rounded-lg"
       style={{ width: width ? `${width}px` : undefined }}
       ref={dropdownRef}
     >
@@ -63,7 +63,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         />
       </button>
       {isOpen && (
-        <ul className="absolute z-10 mt-1 w-full bg-white border-2 border-main rounded-lg shadow-lg max-h-60 overflow-auto">
+        <ul className="absolute z-10 mt-1 w-full bg-white border-[1px] border-main bg-white rounded-lg shadow-lg max-h-60 overflow-auto">
           {options.map((option, index) => (
             <li
               key={index}
