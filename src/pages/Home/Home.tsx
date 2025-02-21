@@ -122,7 +122,7 @@ import { useRef } from "react";
 import main_img from "../../assets/images/main_img.png";
 import Dropdown from "../../common/DropDownComponent";
 import AnimalCard from "../../common/AnimalCard";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface CardSectionProps {
   title: string;
@@ -196,6 +196,7 @@ export default function Home() {
     { label: "성별", options: ["선택하세요", "수컷", "암컷"] },
     { label: "지역", options: ["선택하세요", "서울", "부산", "대구", "기타"] },
   ];
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col justify-center">
@@ -206,7 +207,10 @@ export default function Home() {
             <br className="hidden sm:block" />
             궁금하다면?
           </p>
-          <button className="mt-4 w-full sm:w-auto px-4 py-2 bg-[#09ACFB] text-white rounded-lg hover:bg-blue-600">
+          <button
+            className="mt-4 w-full sm:w-auto px-4 py-2 bg-[#09ACFB] text-white rounded-lg hover:bg-blue-600"
+            onClick={() => navigate("/Matching")}
+          >
             찾아보기
           </button>
         </div>
