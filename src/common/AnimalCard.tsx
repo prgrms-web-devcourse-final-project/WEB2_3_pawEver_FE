@@ -29,5 +29,6 @@ export default function AnimalCard() {
         </div>
       </div>
     </div>
+    </div>
   );
 }
