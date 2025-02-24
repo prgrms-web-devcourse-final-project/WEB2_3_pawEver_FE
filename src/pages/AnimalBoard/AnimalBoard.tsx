@@ -71,7 +71,11 @@ export default function AnimalBoard() {
           }}
         >
           {cards.map((card) => (
-            <Link key={card.id} to={`/community/${card.id}`} className="w-full">
+            <Link
+              key={card.id}
+              to={`/AnimalBoard/${card.id}`}
+              className="w-full"
+            >
               <div className="w-[256px]">
                 <AnimalCard />
               </div>

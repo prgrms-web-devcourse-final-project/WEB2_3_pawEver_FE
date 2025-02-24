@@ -27,9 +27,12 @@ export default function Community() {
                   검색
                 </button>
               </div>
-              <button className="bg-main hover:bg-point text-white px-4 py-2 rounded-md whitespace-nowrap flex-shrink-0 max-[500px]:hidden">
+              <Link
+                to="/EditCommunity"
+                className="bg-main hover:bg-point text-white px-4 py-2 rounded-md whitespace-nowrap flex-shrink-0 max-[500px]:hidden"
+              >
                 글쓰기
-              </button>
+              </Link>
             </div>
           </div>
         </div>
