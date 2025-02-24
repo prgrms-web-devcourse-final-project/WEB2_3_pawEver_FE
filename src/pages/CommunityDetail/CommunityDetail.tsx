@@ -120,6 +120,7 @@ export default function CommunityDetail() {
 
     toast.success("댓글이 작성되었습니다.", {
       duration: 3000,
+      position: "top-right",
       style: {
         background: "#09ACFB",
         color: "#FFFFFF",
@@ -158,6 +159,7 @@ export default function CommunityDetail() {
         background: "#09ACFB",
         color: "#FFFFFF",
       },
+      position: "top-right",
       iconTheme: {
         primary: "#FFFFFF",
         secondary: "#09ACFB",
