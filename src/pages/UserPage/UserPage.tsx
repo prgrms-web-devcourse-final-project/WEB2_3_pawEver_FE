@@ -9,6 +9,15 @@ interface AnimalCardSliderProps {
   cards: number;
 }
 
+// Input 컴포넌트 props 타입 정의
+interface InputProps {
+  placeholder: string;
+  width: number;
+}
+
+// Input 컴포넌트 타입 명시 :)
+const TypedInput = Input as React.FC<InputProps>;
+
 const staffMenuItems = [
   "예약/상담 확인하기",
   "후원 내역 확인하기",
@@ -70,7 +79,7 @@ function UserMenu() {
 }
 
 const AnimalCardSlider: React.FC<AnimalCardSliderProps> = ({ cards }) => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
     if (containerRef.current) {
@@ -177,15 +186,21 @@ function StaffPage() {
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <label className="text-2xl">보호센터명</label>
-              <Input placeholder="보호센터명을 입력하세요" width={300} />
+              <TypedInput placeholder="보호센터명을 입력하세요" width={300} />
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-2xl">보호소 전화번호</label>
-              <Input placeholder="보호소 전화번호를 입력하세요" width={300} />
+              <TypedInput
+                placeholder="보호소 전화번호를 입력하세요"
+                width={300}
+              />
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-2xl">담당자 연락처</label>
-              <Input placeholder="담당자 연락처를 입력하세요" width={300} />
+              <TypedInput
+                placeholder="담당자 연락처를 입력하세요"
+                width={300}
+              />
             </div>
           </div>
         </div>
@@ -195,7 +210,7 @@ function StaffPage() {
   );
 }
 
-function UserPage({ defaultIsStaff }: { defaultIsStaff: boolean }) {
+function UserPage({ defaultIsStaff = false }: { defaultIsStaff?: boolean }) {
   const [isStaff, setIsStaff] = useState(defaultIsStaff);
 
   return (

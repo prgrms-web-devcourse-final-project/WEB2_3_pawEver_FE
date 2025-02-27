@@ -1,9 +1,22 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import back from "../../assets/icons/back.svg";
 import walkingdog from "../../assets/images/walkingdog.json";
 import Lottie from "lottie-react";
 
 export default function MatchingComplete() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const dummyResultId = "123";
+      navigate(`/Matching/result/${dummyResultId}`);
+    }, 3000);
+
+    // 컴포넌트 언마운트 시 타이머 클리어
+    return () => clearTimeout(timer);
+  }, [navigate]);
+
   return (
     <div className="flex justify-center">
       <div className="flex flex-col w-full max-w-[488px] h-[630px] md:h-[660px] rounded-xl shadow-lg mx-4 mt-2 py-6 md:py-8">
