@@ -1,6 +1,7 @@
 import React from "react";
 import matchingThumnail from "../../assets/images/matchingThumbnail.svg";
 import Button from "../../common/ButtonComponent";
+import { Link } from "react-router-dom";
 
 export default function Matching() {
   return (
@@ -12,7 +13,9 @@ export default function Matching() {
       <p className="mt-5 md:mt-[30px] mb-7 md:mb-10 font-semibold">
         185종의 애완동물 중 나와 어울리는 친구는 누구일까요?
       </p>
-      <Button>바로 찾아보기</Button>
+      <Link to="/Matching/progress">
+        <Button>바로 찾아보기</Button>
+      </Link>
     </div>
   );
 }
