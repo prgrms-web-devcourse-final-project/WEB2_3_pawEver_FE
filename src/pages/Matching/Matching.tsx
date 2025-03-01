@@ -1,4 +1,3 @@
-import React from "react";
 import matchingThumnail from "../../assets/images/matchingThumbnail.svg";
 import Button from "../../common/ButtonComponent";
 import { Link } from "react-router-dom";

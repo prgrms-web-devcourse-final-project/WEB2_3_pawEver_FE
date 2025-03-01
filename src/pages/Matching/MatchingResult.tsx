@@ -1,4 +1,3 @@
-import React from "react";
 import restart from "../../assets/icons/return.svg";
 import share from "../../assets/images/matchingShare.svg";
 import urlShare from "../../assets/icons/urlShare.svg";
@@ -10,9 +9,7 @@ export default function MatchingResult() {
   return (
     <div className="flex justify-center">
       <div className="flex flex-col items-center my-8 w-full max-w-4xl">
-        {/* 위*/}
         <div className="flex flex-col md:flex-row gap-8 mb-4 w-full">
-          {/* 왼쪽 */}
           <div className="flex flex-col items-center md:justify-center mt-3 w-full">
             <p className="text-[16px] text-[#5F656C]">
               당신에게 가장 잘 어울리는 반려 동물은

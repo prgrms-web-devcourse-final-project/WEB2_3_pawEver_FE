@@ -1,4 +1,3 @@
-import React from "react";
 import like from "../../../assets/icons/likewhite.svg";
 
 export default function MatchingCard() {

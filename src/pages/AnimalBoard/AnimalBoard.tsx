@@ -100,7 +100,7 @@ export default function AnimalBoard() {
   // 에러 상태 처리
   if (isError) {
     return (
-      <div className="w-full my-8 text-center">
+      <div className="w-full my-8 text-center px-4">
         <div className="max-w-[1200px] mx-auto bg-red-50 p-4 rounded">
           <p className="text-red-600">
             데이터를 불러오는 중 오류가 발생했습니다
@@ -120,10 +120,12 @@ export default function AnimalBoard() {
   }
 
   return (
-    <section className="w-full my-8">
+    <section className="w-full my-8 ">
       <div className="max-w-[1200px] mx-auto">
-        <div className="flex items-center justify-between mt-10 mb-1">
-          <p className="text-xl font-semibold mb-1">보호 중인 동물</p>
+        <div className="flex items-center justify-between mt-6 sm:mt-10 mb-1">
+          <p className="text-lg sm:text-xl font-semibold mb-1">
+            보호 중인 동물
+          </p>
           <img
             src={board_sliders}
             alt="필터 아이콘"
@@ -133,8 +135,8 @@ export default function AnimalBoard() {
         </div>
 
         {showFilters && (
-          <div className="bg-[#E5F6FF] w-full rounded-lg p-4">
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 mb-4 mt-3 px-4 sm:pl-[86px]">
+          <div className="bg-[#E5F6FF] w-full rounded-lg p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-8 mb-3 sm:mb-4 mt-2 sm:mt-3 px-2 sm:px-4 sm:pl-[86px]">
               {filters.map((filter, index) => (
                 <div key={index} className="flex flex-col w-full sm:w-[130px]">
                   <p className="text-sm text-[#414651]">{filter.label}</p>
@@ -146,7 +148,7 @@ export default function AnimalBoard() {
               ))}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pb-2 pt-7 px-4 sm:pl-[86px]">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pb-2 pt-4 sm:pt-7 px-2 sm:px-4 sm:pl-[86px]">
               <input
                 type="text"
                 placeholder="강아지를 입력해주세요."
@@ -159,13 +161,12 @@ export default function AnimalBoard() {
           </div>
         )}
 
-        {/* 동물 카드 그리드 */}
-        <div className="grid gap-4 mt-7 mx-auto w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {/* 동물 카드 그리드 - 모바일에서도 2열 그리드 유지 */}
+        <div className="grid gap-x-3 gap-y-4 sm:gap-4 mt-5 sm:mt-7 mx-auto w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-items-center">
           {/* 초기 로딩 중일 때 Skeleton 표시 */}
           {isLoading
             ? [...Array(8)].map((_, index) => (
-                // 2) 추가: 스켈레톤에 'skeleton-fade' 클래스 적용
-                <div className="skeleton-fade" key={index}>
+                <div className="skeleton-fade w-full" key={index}>
                   <SkeletonCard />
                 </div>
               ))
@@ -173,26 +174,23 @@ export default function AnimalBoard() {
                 <Link
                   key={animal.desertionNo}
                   to={`/AnimalBoard/${animal.desertionNo}`}
-                  className="w-full"
+                  className="w-full flex justify-center"
                 >
-                  <div className="w-[256px]">
-                    <TestCard
-                      desertionNo={animal.desertionNo}
-                      popfile={animal.popfile}
-                      kindCd={animal.kindCd}
-                      careNm={animal.careNm}
-                      neuterYn={animal.neuterYn}
-                      weight={animal.weight}
-                    />
-                  </div>
+                  <TestCard
+                    desertionNo={animal.desertionNo}
+                    popfile={animal.popfile}
+                    kindCd={animal.kindCd}
+                    careNm={animal.careNm}
+                    neuterYn={animal.neuterYn}
+                    weight={animal.weight}
+                  />
                 </Link>
               ))}
 
           {/* 추가 로딩 중일 때 Skeleton 표시 */}
           {isFetchingNextPage &&
             [...Array(4)].map((_, index) => (
-              // 동일하게 'skeleton-fade' 클래스 적용
-              <div className="skeleton-fade" key={`loading-${index}`}>
+              <div className="skeleton-fade w-full" key={`loading-${index}`}>
                 <SkeletonCard />
               </div>
             ))}
