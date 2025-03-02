@@ -1,6 +1,6 @@
-@import "./tallwind.css";
+@import "./tailwind.css";
 
-/* 모든 요소의 기본 마진, 패딩 제거 및 박스 모델 통일 */
+/* 나머지 스타일들 */
 *,
 *::before,
 *::after {

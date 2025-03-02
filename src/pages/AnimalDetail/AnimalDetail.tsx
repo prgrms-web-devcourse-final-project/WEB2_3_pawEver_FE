@@ -3,16 +3,14 @@ import KakaoMap from "../../components/KakaoMap";
 import exampleAnimal from "../../assets/images/exampleAnimal.png";
 import mapMarker from "../../assets/icons/mapMarker.svg";
 import ButtonComponent from "../../common/ButtonComponent";
-import like from "../../assets/icons/like.svg";
+import LikeIcon from "../../assets/icons/like.svg?react";
 
-const PetAdoptionCard: React.FC = () => {
+const AnimalDetail: React.FC = () => {
   const [isLiked, setIsLiked] = useState(false);
 
   return (
     <div className="max-w-4xl mx-auto p-6 ">
-      {/* Image and Info Section */}
       <div className="flex pb-4">
-        {/* Left Side - Image */}
         <div className="w-1/2 pr-4 relative">
           <img
             src={exampleAnimal}
@@ -20,21 +18,17 @@ const PetAdoptionCard: React.FC = () => {
             alt="Pet"
           />
         </div>
-
-        {/* Right Side - Information */}
         <div className="w-1/2 pl-4">
           <div className="flex items-center justify-between border-b border-gray-300 pb-2">
             <h2 className="text-2xl font-semibold">아바시니안 1개월 (남아)</h2>
             <button
               onClick={() => setIsLiked(!isLiked)}
-              className={isLiked ? "bg-red-500" : "bg-gray-500"}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
             >
-              <img
-                src={like}
-                alt="Like button"
-                className={`w-6 h-6 transition-all duration-300 ${
-                  isLiked ? "filter brightness-0 invert" : ""
-                }`}
+              <LikeIcon
+                className="w-6 h-6"
+                fill={isLiked ? "#FF0000" : "none"}
+                stroke={isLiked ? "#EF4444" : "currentColor"}
               />
             </button>
           </div>
@@ -89,4 +83,4 @@ const PetAdoptionCard: React.FC = () => {
   );
 };
 
-export default PetAdoptionCard;
+export default AnimalDetail;
