@@ -11,6 +11,7 @@ import Community from "./pages/community/Community";
 import CommunityDetail from "./pages/communitydetail/CommunityDetail";
 import EditCommunity from "./pages/editcommunity/EditCommunity";
 import UserPage from "./pages/userpage/UserPage";
+import StaffPage from "./pages/staffpage/StaffPage";
 import NotFound from "./pages/notfound/NotFound";
 import RootLayout from "./components/layout/RootLayout";
 import Donation from "./pages/donation/Donation";
@@ -33,6 +34,7 @@ export default function Router() {
         <Route path="/Community/:id" element={<CommunityDetail />} />
         <Route path="/EditCommunity" element={<EditCommunity />} />
         <Route path="/UserPage/:userId" element={<UserPage />} />
+        <Route path="/StaffPage/:staffId" element={<StaffPage />} />
         <Route path="/Donation" element={<Donation />} />
         <Route path="/Donation/success" element={<DonationSuccess />} />
         <Route path="/Donation/fail" element={<DonationFail />} />
