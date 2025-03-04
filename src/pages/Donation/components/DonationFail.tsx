@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function DonationFail() {
@@ -7,9 +7,9 @@ export default function DonationFail() {
 
   useEffect(() => {
     // 결제 실패 시 ?code=... 등 파라미터가 붙을 수 있음
-    const searchParams = new URLSearchParams(location.search);
+    // const searchParams = new URLSearchParams(location.search);
     //임시id값
-    const orderId = searchParams.get("orderId");
+    // const orderId = searchParams.get("orderId");
     // etc...
   }, [location]);
 

@@ -2,7 +2,6 @@ import Input from "../../common/InputComponent";
 import Dropdown from "../../common/DropDownComponent";
 import Button from "../../common/ButtonComponent";
 import KakaoMap from "../../components/KakaoMap";
-import ReservationCalender from "./components/ReservationCalender";
 import { useEffect, useState } from "react";
 
 // window.kakao에 대한 타입 선언
@@ -34,7 +33,7 @@ interface EditReservationPresenterProps {
 
 function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
   // 날짜 예약 상태 추가
-  const [reservationDate, setReservationDate] = useState<Date | null>(null);
+  // const [reservationDate, setReservationDate] = useState<Date | null>(null);
   // 초기 서울 중심 좌표를 기본값으로 설정
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
