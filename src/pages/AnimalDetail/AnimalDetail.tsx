@@ -2,7 +2,7 @@ import { useMemo, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient, InfiniteData } from "@tanstack/react-query";
 import KakaoMap from "../../components/KakaoMap";
-import ButtonComponent from "../../common/ButtonComponent";
+import Button from "../../common/ButtonComponent";
 import LikeIcon from "../../assets/icons/like.svg?react";
 import mapMarker from "../../assets/icons/mapMarker.svg";
 import exampleAnimal from "../../assets/images/exampleAnimal.png";
@@ -36,7 +36,7 @@ export default function AnimalDetail() {
     return (
       <div className="p-6">
         <p>Animal not found.</p>
-        <ButtonComponent onClick={() => navigate(-1)}>뒤로가기</ButtonComponent>
+        <Button onClick={() => navigate(-1)}>뒤로가기</Button>
       </div>
     );
   }
@@ -128,9 +128,9 @@ export default function AnimalDetail() {
           </div>
           {/* 상담하기 버튼을 하단에 고정 */}
           <div className="mt-4">
-            <ButtonComponent className="w-40 bg-main text-white hover:bg-point">
+            <Button className="w-40 bg-main text-white hover:bg-point">
               상담하기
-            </ButtonComponent>
+            </Button>
           </div>
         </div>
       </div>
