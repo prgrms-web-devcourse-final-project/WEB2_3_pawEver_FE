@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/home/Home";
-import AnimalBoard from "./pages/animalboard/AnimalBoard";
+import AnimalBoard from "./pages/AnimalBoard/AnimalBoard";
 import AnimalDetail from "./pages/animaldetail/AnimalDetail";
 import EditReservation from "./pages/editreservation/EditReservation";
 import EditCommunity from "./pages/editcommunity/EditCommunity";
@@ -8,7 +8,7 @@ import Matching from "./pages/matching/Matching";
 import MatchingProgress from "./pages/matching/MatchingProgress";
 import MatchingComplete from "./pages/matching/MatchingComplete";
 import MatchingResult from "./pages/matching/MatchingResult";
-import Community from "./pages/community/Community";
+import Community from "./pages/Community/Community";
 import CommunityDetail from "./pages/communitydetail/CommunityDetail";
 import Userpage from "./pages/userpage/UserPage";
 import StaffPage from "./pages/staffpage/StaffPage";
