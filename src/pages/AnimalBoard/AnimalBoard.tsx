@@ -167,6 +167,7 @@ export default function AnimalBoard() {
                     careNm={animal.careNm}
                     neuterYn={animal.neuterYn}
                     weight={animal.weight}
+                    sexCd={animal.sexCd}
                   />
                 </Link>
               ))}
