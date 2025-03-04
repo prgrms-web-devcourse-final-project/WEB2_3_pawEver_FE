@@ -1,79 +1,56 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import TestCard from "../../common/TestCard";
 import board_sliders from "../../assets/icons/board-sliders.svg";
 import Dropdown from "../../common/DropDownComponent";
 import SkeletonCard from "../../common/SkeletonCard";
-import { useFetchAnimals } from "../../hooks/useFetchAnimals";
+import fetchAnimals from "../../api/fetchAnimals";
+import type { AnimalsResponse, Animal } from "../../api/fetchAnimals";
 
 export default function AnimalBoard() {
-  // 페이지
-  const PAGE_SIZE = 20;
+  const pageNo = 1;
+  const numOfRows = 20;
+  const PAGE_SIZE = numOfRows;
 
   const {
-    getAllAnimals,
+    data,
     isLoading,
     isError,
     error,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useFetchAnimals(PAGE_SIZE);
+  } = useInfiniteQuery<AnimalsResponse>({
+    queryKey: ["animalsList"],
+    queryFn: ({ pageParam = pageNo }) =>
+      fetchAnimals({ pageNo: pageParam as number, numOfRows: PAGE_SIZE }),
+    initialPageParam: pageNo,
+    getNextPageParam: (lastPage, allPages) => {
+      const totalCount = Number(lastPage.response?.body?.totalCount) || 0;
+      const loadedItems = allPages.reduce((sum, pg) => {
+        const pageItems = pg.response?.body?.items?.item ?? [];
+        return sum + pageItems.length;
+      }, 0);
+      return loadedItems < totalCount ? allPages.length + 1 : undefined;
+    },
+    // loader에서 받아온 초기 데이터 관련 옵션 제거
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  // 필터 상태 관리
-  const [showFilters, setShowFilters] = useState(false);
-  const toggleFilters = () => setShowFilters((prev) => !prev);
+  const animals: Animal[] = useMemo(() => {
+    if (!data) return [];
+    return data.pages.flatMap((page) => page.response?.body?.items?.item ?? []);
+  }, [data]);
 
-  // 필터 드롭다운 예제 데이터
-  const filters = [
-    { label: "종류", options: ["강아지", "고양이", "기타"] },
-    { label: "지역", options: ["서울", "부산", "대구", "인천"] },
-    { label: "성별", options: ["남아", "여아"] },
-  ];
-
-  // 모든 동물 데이터 가져오기
-  const allAnimals = getAllAnimals();
-
-  // 긴급 동물 필터링
-  const urgentAnimals = useMemo(() => {
-    const now = new Date();
-
-    const filtered = allAnimals.filter((animal) => {
-      if (!animal.noticeEdt) return false;
-
-      try {
-        const year = parseInt(animal.noticeEdt.substring(0, 4), 10);
-        const month = parseInt(animal.noticeEdt.substring(4, 6), 10) - 1;
-        const day = parseInt(animal.noticeEdt.substring(6, 8), 10);
-
-        if (isNaN(year) || isNaN(month) || isNaN(day)) return false;
-
-        const noticeDate = new Date(year, month, day);
-        const diffDays =
-          (noticeDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-        return diffDays <= 14;
-      } catch (e) {
-        return false;
-      }
-    });
-
-    // 중복 제거 (Map 사용)
-    const map = new Map();
-    filtered.forEach((animal) => {
-      map.set(animal.desertionNo, animal);
-    });
-
-    return Array.from(map.values());
-  }, [allAnimals]);
-
-  // 무한 스크롤
+  // 무한 스크롤을 위한 IntersectionObserver 설정
   const loadMoreRef = useRef<HTMLDivElement>(null);
-
   const observerCallback = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries;
       if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
-        console.log("다음 페이지 로딩 시작");
         fetchNextPage();
       }
     },
@@ -81,23 +58,28 @@ export default function AnimalBoard() {
   );
 
   useEffect(() => {
-    // Intersection Observer 설정
     const observer = new IntersectionObserver(observerCallback, {
-      rootMargin: "200px", // 미리 로딩 시작
+      rootMargin: "200px",
       threshold: 0.1,
     });
-
     const currentRef = loadMoreRef.current;
     if (currentRef) observer.observe(currentRef);
-
-    // 클린업
     return () => {
       if (currentRef) observer.unobserve(currentRef);
       observer.disconnect();
     };
   }, [observerCallback]);
 
-  // 에러 상태 처리
+  // 필터 토글 상태 관리 및 필터 배열 정의
+  const [showFilters, setShowFilters] = useState(false);
+  const toggleFilters = () => setShowFilters((prev) => !prev);
+
+  const filters = [
+    { label: "종류", options: ["강아지", "고양이", "기타"] },
+    { label: "지역", options: ["서울", "부산", "대구", "인천"] },
+    { label: "성별", options: ["남아", "여아"] },
+  ];
+
   if (isError) {
     return (
       <div className="w-full my-8 text-center px-4">
@@ -106,7 +88,7 @@ export default function AnimalBoard() {
             데이터를 불러오는 중 오류가 발생했습니다
           </p>
           <p className="text-sm text-red-500">
-            {error?.message || "알 수 없는 오류"}
+            {error instanceof Error ? error.message : "알 수 없는 오류"}
           </p>
           <button
             className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
@@ -118,6 +100,9 @@ export default function AnimalBoard() {
       </div>
     );
   }
+
+  // 초기 로딩 중일 때 Skeleton UI 표시
+  const showSkeleton = isLoading;
 
   return (
     <section className="w-full my-8 ">
@@ -163,14 +148,13 @@ export default function AnimalBoard() {
 
         {/* 동물 카드 그리드 - 모바일에서도 2열 그리드 유지 */}
         <div className="grid gap-x-3 gap-y-4 sm:gap-4 mt-5 sm:mt-7 mx-auto w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-items-center">
-          {/* 초기 로딩 중일 때 Skeleton 표시 */}
-          {isLoading
+          {showSkeleton
             ? [...Array(8)].map((_, index) => (
                 <div className="skeleton-fade w-full" key={index}>
                   <SkeletonCard />
                 </div>
               ))
-            : urgentAnimals.map((animal) => (
+            : animals.map((animal) => (
                 <Link
                   key={animal.desertionNo}
                   to={`/AnimalBoard/${animal.desertionNo}`}
@@ -183,11 +167,10 @@ export default function AnimalBoard() {
                     careNm={animal.careNm}
                     neuterYn={animal.neuterYn}
                     weight={animal.weight}
+                    sexCd={animal.sexCd}
                   />
                 </Link>
               ))}
-
-          {/* 추가 로딩 중일 때 Skeleton 표시 */}
           {isFetchingNextPage &&
             [...Array(4)].map((_, index) => (
               <div className="skeleton-fade w-full" key={`loading-${index}`}>

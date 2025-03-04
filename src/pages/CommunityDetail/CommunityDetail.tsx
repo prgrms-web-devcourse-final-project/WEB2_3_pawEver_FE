@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import harpSeal from "../../assets/images/harp seal.jpg";
 import graySeal from "../../assets/images/Greay Seal.jpg";
 

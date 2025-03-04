@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import Lottie from "lottie-react";
 import paw from "../../../assets/images/paw.json";
