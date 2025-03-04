@@ -1,0 +1,8 @@
+[build]
+  command = "pnpm build"    # package.json의 "build" 스크립트에 해당
+  publish = "dist"          # 빌드 결과물이 저장되는 폴더 (Vite 기본: dist)
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
