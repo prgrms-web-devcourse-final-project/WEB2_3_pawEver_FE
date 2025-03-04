@@ -13,6 +13,7 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "emitDeclarationOnly": false,
     "jsx": "react-jsx",
 
     /* Linting */
@@ -20,7 +21,10 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    /*ReactComponent 사용을 위한 필수 설정 */
+    "composite": true
   },
   "include": ["src"]
 }

@@ -1,0 +1,15 @@
+branchName: "feature-#${issue.number}"
+autoCloseIssue: true
+openDraftPR: true
+copyIssueLabelsToPR: true
+copyIssueAssigneeToPR: true
+
+branches:
+  - label: ✨ Feature
+    prefix: feature/
+  - label: 🔧 Fix
+    prefix: fix/
+  - label: 💄 Style
+    prefix: style/
+  - label: ♻️ Refactor
+    prefix: refactor/
