@@ -13,7 +13,7 @@ import fetchAnimals, { AnimalsResponse } from "../api/fetchAnimals";
 
 export function useFetchAnimals(pageSize: number = 20) {
   const query = useInfiniteQuery<AnimalsResponse, Error>({
-    queryKey: ["animalsUrgent", pageSize],
+    queryKey: ["animalsList", pageSize],
     initialPageParam: 1,
 
     // 쿼리 설정
@@ -50,8 +50,6 @@ export function useFetchAnimals(pageSize: number = 20) {
     getNextPageParam: (lastPage, pages) => {
       const totalCount = Number(lastPage.response?.body?.totalCount) || 0;
       const loadedItems = pages.length * pageSize;
-
-      // 다음 페이지가 있는지 확인
       return loadedItems < totalCount ? pages.length + 1 : undefined;
     },
   });
