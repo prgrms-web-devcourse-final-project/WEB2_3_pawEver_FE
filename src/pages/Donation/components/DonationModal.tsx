@@ -2,7 +2,7 @@ import Lottie from "lottie-react";
 import paw from "../../../assets/images/paw.json";
 import logo from "../../../assets/icons/logo.svg";
 import Button from "../../../common/ButtonComponent";
-
+//
 interface Modal {
   isModalOpen: boolean;
   closeModal: () => void;

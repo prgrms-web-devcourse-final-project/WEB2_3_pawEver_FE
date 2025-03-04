@@ -4,7 +4,7 @@ import urlShare from "../../assets/icons/urlShare.svg";
 import kakaotalkShare from "../../assets/icons/kakaotalkShare.svg";
 import MatchingCard from "./components/MatchingCard";
 import Button from "../../common/ButtonComponent";
-
+//
 export default function MatchingResult() {
   return (
     <div className="flex justify-center">

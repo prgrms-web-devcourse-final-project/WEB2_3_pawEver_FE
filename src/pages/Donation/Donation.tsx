@@ -7,7 +7,7 @@ import { loadTossPayments } from "@tosspayments/payment-sdk";
 const CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY || "";
 
 export default function Donation() {
-  // 결제 수단
+  // 결제 수단.
   const [selected, setSelected] = useState<"card" | "cash" | null>(null);
 
   // 사용자 입력 정보

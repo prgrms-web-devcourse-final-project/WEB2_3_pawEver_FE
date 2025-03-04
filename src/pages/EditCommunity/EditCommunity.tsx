@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Editor } from "@toast-ui/react-editor";
 import "@toast-ui/editor/dist/toastui-editor.css";
-
+//
 export default function EditCommunity() {
   const [title, setTitle] = useState("");
   const editorRef = useRef<Editor>(null);

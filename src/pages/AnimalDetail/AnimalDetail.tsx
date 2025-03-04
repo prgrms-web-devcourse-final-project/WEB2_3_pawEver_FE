@@ -7,7 +7,7 @@ import LikeIcon from "../../assets/icons/like.svg?react";
 import mapMarker from "../../assets/icons/mapMarker.svg";
 import exampleAnimal from "../../assets/images/exampleAnimal.png";
 import type { AnimalsResponse } from "../../api/fetchAnimals";
-
+//
 export default function AnimalDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

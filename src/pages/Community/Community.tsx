@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import AnimalCard from "../../common/AnimalCard";
 
 export default function Community() {
-  // 임시 데이터: 실제는 각 카드에 고유 id가 포함된 데이터를 사용
+  // 임시 데이터: 실제는 각 카드에 고유 id가 포함된 데이터를 사용.
   const cards = new Array(12).fill(null).map((_, index) => ({ id: index + 1 }));
 
   return (

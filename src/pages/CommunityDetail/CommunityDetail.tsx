@@ -3,7 +3,7 @@ import { toast } from "react-hot-toast";
 import harpSeal from "../../assets/images/harp seal.jpg";
 import graySeal from "../../assets/images/Greay Seal.jpg";
 
-// 상대 시간 표시 함수
+// 상대 시간 표시 함수.
 function getRelativeTimeString(timestamp: number): string {
   const now = Date.now();
   const diff = Math.floor((now - timestamp) / 1000);

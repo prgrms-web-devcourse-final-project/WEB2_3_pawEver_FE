@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import main_img from "../../../assets/images/main_img.png";
 import TypingText from "../../../common/TypingText";
-
+//
 export default function HeroSection() {
   return (
     <section

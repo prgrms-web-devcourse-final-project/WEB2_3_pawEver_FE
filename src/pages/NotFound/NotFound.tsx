@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import notFoundImg from "../../assets/images/notFoundImg.png";
 import ButtonComponent from "../../common/ButtonComponent";
-
+//
 export default function NotFound() {
   const navigate = useNavigate();
 

@@ -10,7 +10,7 @@ export default function DonationFail() {
     // const searchParams = new URLSearchParams(location.search);
     //임시id값
     // const orderId = searchParams.get("orderId");
-    // etc...
+    // etc....
   }, [location]);
 
   const retry = () => {

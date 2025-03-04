@@ -1,4 +1,4 @@
-//현재는 persistQuery로 인해서 안쓰게 됐지만 일단 남겨둡니다.
+//현재는 persistQuery로 인해서 안쓰게 됐지만 일단 남겨둡니다..
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { InfiniteData } from "@tanstack/react-query";

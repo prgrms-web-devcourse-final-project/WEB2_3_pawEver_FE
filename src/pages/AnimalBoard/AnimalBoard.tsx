@@ -7,7 +7,7 @@ import Dropdown from "../../common/DropDownComponent";
 import SkeletonCard from "../../common/SkeletonCard";
 import fetchAnimals from "../../api/fetchAnimals";
 import type { AnimalsResponse, Animal } from "../../api/fetchAnimals";
-
+//
 export default function AnimalBoard() {
   const pageNo = 1;
   const numOfRows = 20;

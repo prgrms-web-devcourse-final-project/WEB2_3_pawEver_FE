@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import AnimalCard from "../../../common/AnimalCard";
-
+//
 interface CardSectionProps {
   title: string;
   cards: number;

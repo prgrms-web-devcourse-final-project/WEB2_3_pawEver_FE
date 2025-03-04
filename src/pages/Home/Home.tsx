@@ -1,7 +1,7 @@
 import HeroSection from "./components/HeroSection";
 import FilterSection from "./components/FilterSection";
 import CardSection from "./components/CardSection";
-
+//
 export default function Home() {
   return (
     <div className="flex flex-col justify-center">

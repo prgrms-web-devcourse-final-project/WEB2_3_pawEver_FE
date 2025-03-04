@@ -1,5 +1,5 @@
 import Dropdown from "../../../common/DropDownComponent";
-
+//
 export default function FilterSection() {
   const filters = [
     { label: "동물 구분", options: ["선택하세요", "개", "고양이"] },
