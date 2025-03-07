@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuthStore } from "./store/authStore";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "react-hot-toast";
+import { BrowserRouter } from "react-router-dom";
 import Router from "./Router";
 import SkeletonCard from "./common/SkeletonCard";
-import { BrowserRouter } from "react-router-dom";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,7 +27,12 @@ const persister = createSyncStoragePersister({
 });
 
 export default function App() {
+  const { handleOAuthCallback } = useAuthStore();
   const [isRestored, setIsRestored] = useState(false);
+  useEffect(() => {
+    // 앱이 처음 실행될 때, 혹은 페이지가 새로고침될 때
+    handleOAuthCallback();
+  }, [handleOAuthCallback]);
 
   return (
     <BrowserRouter>

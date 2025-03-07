@@ -1,27 +1,62 @@
-// useScrollRestoration.ts
-import { useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
-
-const scrollPositions = new Map<string, number>();
+import { useEffect, useLayoutEffect } from "react";
+import { useLocation, useNavigationType } from "react-router-dom";
 
 export function useScrollRestoration() {
   const location = useLocation();
-  // 현재 라우트의 고유 key (pathname + 내부 해시 등)
-  // 뒤로가기 시, 이 key가 바뀝니다.
-  const currentKey = location.key;
+  const navigationType = useNavigationType();
+  const pathKey = location.pathname;
 
-  // 이전 라우트 key를 기억
-  const previousKeyRef = useRef(currentKey);
-
+  // 브라우저 기본 스크롤 복원 비활성화
   useEffect(() => {
-    // 1) 떠나기 전 라우트의 스크롤 위치를 저장
-    scrollPositions.set(previousKeyRef.current, window.scrollY);
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    // Cleanup: 컴포넌트 언마운트 시 기본값 복원
+    return () => {
+      if ("scrollRestoration" in window.history) {
+        window.history.scrollRestoration = "auto";
+      }
+    };
+  }, []);
 
-    // 2) 새 라우트의 스크롤 위치 복원
-    const storedY = scrollPositions.get(currentKey) ?? 0;
-    window.scrollTo(0, storedY);
+  // 스크롤 위치 저장
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem(pathKey, window.scrollY.toString());
+    };
 
-    // 3) 다음 이동 대비, 현재 라우트 key를 기록
-    previousKeyRef.current = currentKey;
-  }, [currentKey]);
+    // 디바운싱 적용
+    let timeoutId: NodeJS.Timeout;
+    const debouncedHandleScroll = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        sessionStorage.setItem(pathKey, window.scrollY.toString());
+      }, 100);
+    };
+
+    window.addEventListener("scroll", debouncedHandleScroll);
+    return () => {
+      window.removeEventListener("scroll", debouncedHandleScroll);
+      clearTimeout(timeoutId);
+    };
+  }, [pathKey]);
+
+  // 스크롤 복원
+  useLayoutEffect(() => {
+    const restoreScroll = () => {
+      if (navigationType === "POP") {
+        const storedY = Number(sessionStorage.getItem(pathKey)) || 0;
+        console.log(`Restoring scroll to ${storedY} for ${pathKey}`); // 디버깅
+        window.scrollTo({
+          top: storedY,
+          behavior: "auto",
+        });
+      } else {
+        window.scrollTo(0, 0);
+      }
+    };
+
+    // 무한 스크롤 데이터 로드 대기 (필요 시 조정)
+    const timer = setTimeout(restoreScroll, 0);
+  }, [pathKey, navigationType]);
 }

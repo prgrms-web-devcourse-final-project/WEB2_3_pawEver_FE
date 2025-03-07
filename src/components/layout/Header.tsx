@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import SidebarM from "./SidebarM";
-import { Link } from "react-router-dom";
 import ButtonComponent from "../../common/ButtonComponent";
 import logo from "../../assets/icons/logo.svg";
 import LoginModal from "./LoginModal";
@@ -10,25 +10,34 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Zustand 스토어에서 로그인 상태와 액션 가져오기
-  const { isLoggedIn, userInfo, logout } = useAuthStore();
+  // Zustand 스토어에서 로그인 상태와 액션, 사용자 정보 가져오기
+  const { isLoggedIn, userInfo, logout, resetState } = useAuthStore();
+  const navigate = useNavigate();
 
+  // 로그아웃 버튼 클릭 시
   const handleLogout = async () => {
-    // Zustand 스토어의 logout 액션 사용
     await logout();
+  };
+
+  // 강제 초기화 버튼 클릭 시
+  const handleForceReset = () => {
+    resetState();
+    localStorage.removeItem("auth-storage");
   };
 
   const handleIsMenuOpen = () => setIsMenuOpen((prev) => !prev);
 
   const handleLoginClick = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
-  const handleOpenModal = () => setIsModalOpen(true);
 
-  // 로그인 성공 시 모달만 닫음 (로그인 상태는 LoginModal에서 처리)
-  const handleLoginSuccess = () => {
-    // 모달을 즉시 닫지 않고, LoginModal에서 타이머 처리
+  // 프로필 클릭 시 사용자 페이지 이동
+  const handleProfileClick = () => {
+    if (userInfo?.id) {
+      navigate(`/UserPage/${userInfo.id}`);
+    }
   };
 
+  // 라우트 링크들
   const navLinks = [
     { to: "/AnimalBoard", label: "입양동물찾기" },
     { to: "/Community", label: "커뮤니티" },
@@ -40,6 +49,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full">
       <div className="bg-white w-full">
         <div className="max-w-[1200px] mx-auto px-4 py-4 flex items-center justify-between">
+          {/* Left Section: 로고 + 네비게이션 */}
           <div className="flex items-center space-x-8">
             <Link
               to="/"
@@ -60,10 +70,30 @@ export default function Header() {
               ))}
             </nav>
           </div>
-
+          {/* Right Section: 로그인/로그아웃 + 프로필 */}
           <div className="hidden md:flex items-center space-x-4">
             {isLoggedIn ? (
               <>
+                {userInfo && (
+                  <div
+                    className="flex items-center cursor-pointer space-x-2"
+                    onClick={handleProfileClick}
+                  >
+                    <img
+                      src={
+                        userInfo.picture ||
+                        "https://via.placeholder.com/36?text=Profile"
+                      }
+                      alt="프로필 이미지"
+                      className="w-9 h-9 rounded-full object-cover"
+                    />
+                    <span className="text-base font-medium">
+                      {userInfo.name || "사용자"}
+                    </span>
+                  </div>
+                )}
+
+                {/* 로그아웃 버튼 */}
                 <ButtonComponent
                   onClick={handleLogout}
                   bgcolor="white"
@@ -71,6 +101,16 @@ export default function Header() {
                   className="border-[1px] border-gray-300 hover:bg-white font-medium"
                 >
                   로그아웃
+                </ButtonComponent>
+
+                {/* 강제 초기화 버튼 로그아웃  */}
+                <ButtonComponent
+                  onClick={handleForceReset}
+                  bgcolor="white"
+                  text="black"
+                  className="border-[1px] border-gray-300 hover:bg-white font-medium"
+                >
+                  강제 초기화
                 </ButtonComponent>
               </>
             ) : (
@@ -93,13 +133,8 @@ export default function Header() {
           </div>
           <SidebarM isOpen={isMenuOpen} onClose={handleIsMenuOpen} />
 
-          {/* 모달은 항상 렌더링되고 isOpen 속성으로 표시 여부 제어 */}
-          <LoginModal
-            isOpen={isModalOpen}
-            onClose={handleCloseModal}
-            onLoginSuccess={handleLoginSuccess}
-            onOpenModal={handleOpenModal}
-          />
+          {/* 로그인 모달 */}
+          <LoginModal isOpen={isModalOpen} onClose={handleCloseModal} />
         </div>
       </div>
     </header>

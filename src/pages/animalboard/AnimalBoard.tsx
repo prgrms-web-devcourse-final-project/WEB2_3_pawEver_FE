@@ -1,49 +1,22 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useAnimals } from "../../hooks/useAnimals";
 import TestCard from "../../common/TestCard";
 import board_sliders from "../../assets/icons/board-sliders.svg";
 import Dropdown from "../../common/DropDownComponent";
 import SkeletonCard from "../../common/SkeletonCard";
-import fetchAnimals from "../../api/fetchAnimals";
-import type { AnimalsResponse, Animal } from "../../api/fetchAnimals";
-//
-export default function AnimalBoard() {
-  const pageNo = 1;
-  const numOfRows = 20;
-  const PAGE_SIZE = numOfRows;
 
+export default function AnimalBoard() {
+  // useTempAnimals 훅을 사용하여 모든 동물 데이터를 받아옵니다.
   const {
-    data,
+    allAnimals,
     isLoading,
     isError,
     error,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteQuery<AnimalsResponse>({
-    queryKey: ["animalsList"],
-    queryFn: ({ pageParam = pageNo }) =>
-      fetchAnimals({ pageNo: pageParam as number, numOfRows: PAGE_SIZE }),
-    initialPageParam: pageNo,
-    getNextPageParam: (lastPage, allPages) => {
-      const totalCount = Number(lastPage.response?.body?.totalCount) || 0;
-      const loadedItems = allPages.reduce((sum, pg) => {
-        const pageItems = pg.response?.body?.items?.item ?? [];
-        return sum + pageItems.length;
-      }, 0);
-      return loadedItems < totalCount ? allPages.length + 1 : undefined;
-    },
-    // loader에서 받아온 초기 데이터 관련 옵션 제거
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const animals: Animal[] = useMemo(() => {
-    if (!data) return [];
-    return data.pages.flatMap((page) => page.response?.body?.items?.item ?? []);
-  }, [data]);
+  } = useAnimals();
 
   // 무한 스크롤을 위한 IntersectionObserver 설정
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -101,11 +74,10 @@ export default function AnimalBoard() {
     );
   }
 
-  // 초기 로딩 중일 때 Skeleton UI 표시
   const showSkeleton = isLoading;
 
   return (
-    <section className="w-full my-8 ">
+    <section className="w-full my-8">
       <div className="max-w-[1200px] mx-auto">
         <div className="flex items-center justify-between mt-6 sm:mt-10 mb-1">
           <p className="text-lg sm:text-xl font-semibold mb-1">
@@ -132,7 +104,6 @@ export default function AnimalBoard() {
                 </div>
               ))}
             </div>
-
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pb-2 pt-4 sm:pt-7 px-2 sm:px-4 sm:pl-[86px]">
               <input
                 type="text"
@@ -146,28 +117,28 @@ export default function AnimalBoard() {
           </div>
         )}
 
-        {/* 동물 카드 그리드 - 모바일에서도 2열 그리드 유지 */}
+        {/* 동물 카드 그리드 */}
         <div className="grid gap-x-3 gap-y-4 sm:gap-4 mt-5 sm:mt-7 mx-auto w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-items-center">
           {showSkeleton
             ? [...Array(8)].map((_, index) => (
-                <div className="skeleton-fade w-full" key={index}>
+                <div className="skeleton-fade w-full" key={`skeleton-${index}`}>
                   <SkeletonCard />
                 </div>
               ))
-            : animals.map((animal) => (
+            : allAnimals.map((animal, index) => (
                 <Link
-                  key={animal.desertionNo}
-                  to={`/AnimalBoard/${animal.desertionNo}`}
+                  key={`${animal.id}-${index}`}
+                  to={`/AnimalBoard/${animal.id}`}
                   className="w-full flex justify-center"
                 >
                   <TestCard
-                    desertionNo={animal.desertionNo}
-                    popfile={animal.popfile}
-                    kindCd={animal.kindCd}
-                    careNm={animal.careNm}
-                    neuterYn={animal.neuterYn}
-                    weight={animal.weight}
-                    sexCd={animal.sexCd}
+                    desertionNo={animal?.id}
+                    popfile={animal?.imageUrl}
+                    kindCd={animal?.name}
+                    careNm={animal?.providerShelterName}
+                    neuterYn={animal?.neuteredStatus}
+                    sexCd={animal?.characteristics?.[0]}
+                    weight={animal?.characteristics?.[1]}
                   />
                 </Link>
               ))}
