@@ -1,14 +1,50 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/icons/logo.svg";
 import ButtonComponent from "../../common/ButtonComponent";
+import { useAuthStore } from "../../store/authStore";
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const SidebarM: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+export default function SidebarM({ isOpen, onClose }: SidebarProps) {
+  // Zustand 인증 상태 및 메소드 가져오기
+  const { isLoggedIn, userInfo, logout } = useAuthStore();
+  const navigate = useNavigate();
+
+  // 로그인 핸들러
+  const handleLogin = () => {
+    // 사이드바 닫기
+    onClose();
+
+    // Header 컴포넌트의 모달 열기 함수 호출
+    // setTimeout을 사용하여 사이드바가 닫힌 후 모달이 열리도록 함
+    setTimeout(() => {
+      // Header 컴포넌트의 handleLoginClick 함수를 직접 접근할 수 없으므로
+      // 커스텀 이벤트를 발생시켜 Header 컴포넌트에게 알림
+      const event = new CustomEvent("openLoginModal");
+      window.dispatchEvent(event);
+    }, 300); // 사이드바 애니메이션 시간(300ms)과 동일하게 설정
+  };
+
+  // 로그아웃 핸들러
+  const handleLogout = async () => {
+    await logout();
+    onClose(); // 사이드바 닫기
+  };
+
+  // 유저 페이지로 이동하는 핸들러
+  const handleUserPageNavigate = () => {
+    if (userInfo?.id) {
+      navigate(`/UserPage/${userInfo.id}`);
+      onClose(); // 사이드바 닫기
+    }
+  };
+
+  // 기본 프로필 이미지
+  const defaultProfileImg = logo;
+
   return (
     <>
       {/* Overlay */}
@@ -31,22 +67,57 @@ const SidebarM: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </button>
           <Link
             to="/"
-            className="flex gap-2 justify-center items-center
-          "
+            className="flex gap-2 justify-center items-center"
             onClick={onClose}
           >
             <img src={logo} alt="PAWEVER Logo" className="h-8 mx-auto" />
             <p className="font-bold text-sm"> PAWEVER </p>
           </Link>
         </div>
+
+        {/* 유저 프로필 영역 - 로그인 상태에 따라 조건부 렌더링 */}
         <div className="p-6 text-center">
-          <p className="font-semibold text-gray-700">
-            어서오세요 <span className="text-main font-bold">우정완</span>님
-          </p>
-          <div className="w-24 h-24 mx-auto my-4 bg-gray-200 rounded-full flex items-center justify-center border border-gray-300">
-            <img src={logo} className="w-12 h-12" />
-          </div>
+          {isLoggedIn && userInfo ? (
+            // 로그인 상태일 때
+            <div className="cursor-pointer" onClick={handleUserPageNavigate}>
+              <p className="font-semibold text-gray-700">
+                어서오세요{" "}
+                <span className="text-main font-bold">{userInfo.name}</span>님
+              </p>
+              <div className="w-24 h-24 mx-auto my-4 bg-gray-200 rounded-full flex items-center justify-center border border-gray-300 overflow-hidden">
+                {userInfo.picture ? (
+                  <img
+                    src={userInfo.picture}
+                    alt={`${userInfo.name}의 프로필`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={defaultProfileImg}
+                    className="w-12 h-12"
+                    alt="기본 프로필"
+                  />
+                )}
+              </div>
+            </div>
+          ) : (
+            // 로그인 상태가 아닐 때
+            <div>
+              <p className="font-semibold text-gray-700">
+                로그인하고 더 많은 기능을 이용해보세요
+              </p>
+              <div className="w-24 h-24 mx-auto my-4 bg-gray-200 rounded-full flex items-center justify-center border border-gray-300">
+                <img
+                  src={defaultProfileImg}
+                  className="w-12 h-12"
+                  alt="기본 프로필"
+                />
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* 네비게이션 메뉴 */}
         <nav className="flex flex-col space-y-4 p-4">
           <Link
             to="/AnimalBoard"
@@ -81,12 +152,20 @@ const SidebarM: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <span>Donation</span>
           </Link>
         </nav>
+
+        {/* 로그인/로그아웃 버튼 */}
         <div className="p-4 mt-6">
-          <ButtonComponent className="w-full">로그인</ButtonComponent>
+          {isLoggedIn ? (
+            <ButtonComponent className="w-full" onClick={handleLogout}>
+              로그아웃
+            </ButtonComponent>
+          ) : (
+            <ButtonComponent className="w-full" onClick={handleLogin}>
+              로그인
+            </ButtonComponent>
+          )}
         </div>
       </div>
     </>
   );
-};
-
-export default SidebarM;
+}

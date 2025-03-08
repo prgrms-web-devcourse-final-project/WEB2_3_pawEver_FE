@@ -7,7 +7,7 @@ interface LoginModalProps {
   onClose: () => void;
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
+export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const {
     isLoading,
     error,
@@ -24,6 +24,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     }
   }, [isOpen, handleOAuthCallback]);
 
+  // 로그인 성공 시 모달 닫기
+  useEffect(() => {
+    if (isLoggedIn && userInfo) {
+      onClose();
+    }
+  }, [isLoggedIn, userInfo, onClose]);
+
   // 모달 밖 영역 클릭 시 닫기
   const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -35,46 +42,48 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4"
       onClick={handleBackgroundClick}
     >
-      <div className="bg-white rounded-3xl shadow-lg w-[476px] min-h-[438px] flex flex-col justify-between p-10">
+      <div className="bg-white rounded-3xl shadow-lg w-full max-w-lg flex flex-col justify-between p-5 sm:p-8 md:p-10">
         <div className="text-center">
-          <p className="flex items-center justify-center mb-8 text-[18px] font-semibold">
+          <p className="flex items-center justify-center mb-6 sm:mb-8 text-base sm:text-lg font-semibold">
             <img src={logo} alt="logo" className="pr-2" />
             PAWEVER
           </p>
-          <p className="text-[28px] font-bold mb-4">로그인</p>
-          <p className="text-[24px] text-gray-500 mb-4 font-semibold leading-[1.2]">
+          <p className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4">
+            로그인
+          </p>
+          <p className="text-lg sm:text-xl md:text-2xl text-gray-500 mb-3 sm:mb-4 font-semibold leading-snug">
             작은 발자국이
             <br />
             영원한 가족을 만듭니다
           </p>
-          <p className="text-md text-gray-500 mb-9">
+          <p className="text-sm md:text-base text-gray-500 mb-6 sm:mb-9">
             PAWEVER에 로그인하고 가족을 찾아보세요!
           </p>
         </div>
 
         {/* 에러 메시지 */}
         {error && (
-          <div className="mb-4 p-2 bg-red-100 text-red-800 rounded text-sm">
+          <div className="mb-4 p-2 bg-red-100 text-red-800 rounded text-xs sm:text-sm">
             {error}
           </div>
         )}
 
         {/* 로그인 성공 여부 */}
         {isLoggedIn && userInfo && (
-          <div className="mb-4 p-2 bg-green-100 text-green-800 rounded text-sm">
+          <div className="mb-4 p-2 bg-green-100 text-green-800 rounded text-xs sm:text-sm">
             환영합니다, {userInfo.name}님!
           </div>
         )}
 
-        <div className="flex flex-col items-center justify-center gap-3">
+        <div className="flex flex-col items-center justify-center gap-4 w-full">
           {/* Google 로그인 버튼 */}
           <button
             onClick={googleLoginInit}
             disabled={isLoading}
-            className="w-[380px] h-[48px] bg-white text-gray-700 py-2 rounded-md border border-solid hover:bg-gray-50 disabled:opacity-70 flex items-center justify-center"
+            className="w-full h-12 bg-white text-gray-700 py-2 rounded-md border border-solid hover:bg-gray-50 disabled:opacity-70 flex items-center justify-center"
           >
             {isLoading ? (
               <span className="mr-2 h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></span>
@@ -105,7 +114,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           <button
             onClick={kakaoLoginInit}
             disabled={isLoading}
-            className="w-[380px] h-[48px] bg-yellow-400 text-black py-2 rounded-md hover:bg-yellow-500 flex items-center justify-center disabled:opacity-70"
+            className="w-full h-12 bg-yellow-400 text-black py-2 rounded-md hover:bg-yellow-500 flex items-center justify-center disabled:opacity-70"
           >
             {isLoading ? (
               <span className="mr-2 h-4 w-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
@@ -128,6 +137,4 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
-};
-
-export default LoginModal;
+}

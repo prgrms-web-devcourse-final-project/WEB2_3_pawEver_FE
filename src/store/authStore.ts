@@ -319,6 +319,7 @@ function cleanupUrlParams() {
   window.history.replaceState({}, document.title, url.toString());
 }
 
+//위치정보 받아오기 전
 /* 구글 사용자 정보 호출*/
 async function fetchGoogleUserInfo(code: string): Promise<UserInfo | null> {
   try {
@@ -435,8 +436,8 @@ async function fetchKakaoUserInfo(code: string): Promise<UserInfo | null> {
       profileImageUrl: user.picture || "",
       email: user.email,
       socialLoginProvider: "kakao",
-      latitude: "0",
-      longitude: "0",
+      latitude: "37.6336457",
+      longitude: "126.7927116",
     };
     const jwtData = await requestJwtFromBackend(payload);
     if (!jwtData.isSuccess) return null;
