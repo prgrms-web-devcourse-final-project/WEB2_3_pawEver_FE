@@ -1,3 +1,4 @@
+//URL 정리 및 중복호출 방지 테스트
 /**
  * 전역 인증 상태와 OAuth 로그인/로그아웃 로직을 관리하는 AuthStore
  * @return {AuthState} 인증 상태(isLoggedIn, userInfo, isLoading, error)
@@ -16,6 +17,7 @@ interface UserInfo {
   email: string;
   picture?: string;
   accessToken?: string;
+  introduction?: string;
 }
 
 /* AuthState : 로그인 상태 및 관련 액션 정의 */
@@ -24,11 +26,14 @@ interface AuthState {
   userInfo: UserInfo | null;
   isLoading: boolean;
   error: string | null;
+  processingCode: string | null;
+  redirectPath: string;
 
   /* 전역 액션들 */
   resetState: () => void;
   setLoading: (flag: boolean) => void;
   setError: (msg: string | null) => void;
+  setRedirectPath: (path: string) => void;
   login: (userData: UserInfo) => void;
   logout: () => Promise<void>;
 
@@ -38,11 +43,14 @@ interface AuthState {
 
   /*
    * OAuth 콜백 처리
-   *  - URL 파라미터(code, state 등) 확인
-   *  - 에러 메시지 또는 정상 토큰 발급
-   *  - 최종적으로 this.login()으로 Zustand 상태 업데이트
+   *  URL 파라미터(code, state 등) 확인
+   *  에러 메시지 또는 정상 토큰 발급
+   *  최종적으로 this.login()으로 Zustand 상태 업데이트
    */
   handleOAuthCallback: () => Promise<void>;
+
+  // 프로필 업데이트 등으로 userInfo의 일부를 갱신할 수 있는 액션
+  updateUserInfo: (data: Partial<UserInfo>) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -52,6 +60,8 @@ export const useAuthStore = create<AuthState>()(
       userInfo: null,
       isLoading: false,
       error: null,
+      processingCode: null,
+      redirectPath: "/",
 
       resetState: () => {
         set({
@@ -59,6 +69,8 @@ export const useAuthStore = create<AuthState>()(
           userInfo: null,
           isLoading: false,
           error: null,
+          processingCode: null,
+          // redirectPath는 리셋하지 않음
         });
       },
 
@@ -68,6 +80,11 @@ export const useAuthStore = create<AuthState>()(
 
       setError: (msg) => {
         set({ error: msg });
+      },
+
+      // 리다이렉트 경로 설정
+      setRedirectPath: (path) => {
+        set({ redirectPath: path });
       },
 
       login: (userData) => {
@@ -97,6 +114,8 @@ export const useAuthStore = create<AuthState>()(
             userInfo: null,
             isLoading: false,
             error: null,
+            processingCode: null,
+            // redirectPath는 유지
           });
           localStorage.removeItem("auth-storage");
         } catch (error) {
@@ -167,73 +186,125 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      /**
-       * OAuth 콜백 처리
-       *  - URL 파라미터(code, state 등) 확인 후
-       *  - 구글/카카오 API로 토큰 요청해서 사용자 정보 획득
-       *  - 백엔드로 JWT 요청해서 최종적으로 상태 업데이트
-       */
+      //로그인 상태 Callback 함수
       handleOAuthCallback: async () => {
         const { setLoading, setError, login } = get();
         try {
-          setLoading(true);
-          setError(null);
+          // 이미 로그인된 경우
+          if (get().isLoggedIn) {
+            return;
+          }
 
           const urlParams = new URLSearchParams(window.location.search);
           const code = urlParams.get("code");
+
+          // 코드가 없으면 처리 중단
+          if (!code) {
+            return;
+          }
+
+          // 중요: 이미 처리 중인 코드인지 확인 (중복 호출 방지)
+          if (get().processingCode === code) {
+            console.log("이 인증 코드는 이미 처리 중입니다");
+            return;
+          }
+
+          // 코드 처리 시작을 표시
+          set({ processingCode: code });
+
+          setLoading(true);
+          setError(null);
+
           const state = urlParams.get("state");
           const errParam = urlParams.get("error");
           const provider = sessionStorage.getItem("loginProvider");
 
+          // 에러 파라미터가 있으면 즉시 throw
           if (errParam) {
             throw new Error(`로그인 중 오류가 발생했습니다: ${errParam}`);
           }
 
-          if (!code || !state || !provider) {
-            setLoading(false);
+          // state, provider 중 하나라도 없으면 처리 중단
+          if (!state || !provider) {
+            // URL 파라미터는 항상 정리
+            cleanupUrlParams();
+            set({
+              isLoading: false,
+              processingCode: null, // 중요: 처리 중 상태 해제
+            });
             return;
           }
 
+          // state 매칭 (보안검증)
           const savedState = sessionStorage.getItem(`${provider}OAuthState`);
           if (state !== savedState) {
             throw new Error("보안 검증에 실패했습니다. 다시 시도해주세요.");
           }
 
           let newUserInfo: UserInfo | null = null;
+
+          // 각 SNS별로 토큰/유저정보 요청
           if (provider === "google") {
             newUserInfo = await fetchGoogleUserInfo(code);
           } else if (provider === "kakao") {
             newUserInfo = await fetchKakaoUserInfo(code);
           }
 
-          if (newUserInfo) {
-            login(newUserInfo);
-          } else {
-            throw new Error("로그인 처리 중 문제가 발생했습니다.");
+          // 받아온 유저 정보가 null이면 에러
+          if (!newUserInfo) {
+            throw new Error(
+              "로그인 처리 중 문제가 발생했습니다. (newUserInfo null)"
+            );
           }
 
+          // 최종적으로 Zustand 로그인 처리
+          login(newUserInfo);
+
+          // URL 파라미터 정리 - 성공 시 항상 실행
           cleanupUrlParams();
+
+          // 세션 스토리지 정리
           sessionStorage.removeItem(`${provider}OAuthState`);
           sessionStorage.removeItem("loginProvider");
-          setLoading(false);
+
+          // 처리 중 상태 해제
+          set({ processingCode: null });
+
+          // 리다이렉트 경로로 이동
+          const redirectTo = get().redirectPath || "/";
+          window.location.replace(redirectTo);
         } catch (err) {
           console.error("handleOAuthCallback 오류:", err);
+
+          // 에러 발생 시에도 URL 파라미터 정리
+          cleanupUrlParams();
+
           set({
             error:
               err instanceof Error
                 ? err.message
-                : "로그인 처리 중 오류가 발생했습니다",
+                : "로그인 처리 중 오류가 발생했습니다.",
             isLoading: false,
+            processingCode: null, // 중요: 에러 발생 시에도 처리 중 상태 해제
           });
         }
       },
+
+      // 추가: userInfo 업데이트 액션
+      updateUserInfo: (data: Partial<UserInfo>) => {
+        set((state) => ({
+          userInfo: state.userInfo ? { ...state.userInfo, ...data } : null,
+        }));
+      },
     }),
+
     {
       name: "auth-storage",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         isLoggedIn: state.isLoggedIn,
         userInfo: state.userInfo,
+        redirectPath: state.redirectPath, // 추가: 리다이렉트 경로 저장
       }),
     }
   )
@@ -342,9 +413,11 @@ async function fetchKakaoUserInfo(code: string): Promise<UserInfo | null> {
     const userResponse = await axios.get("https://kapi.kakao.com/v2/user/me", {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
+
     if (userResponse.status !== 200) {
       throw new Error("카카오 사용자 정보 요청 실패");
     }
+
     const kakaoUserData = userResponse.data;
 
     // UserInfo 객체 생성

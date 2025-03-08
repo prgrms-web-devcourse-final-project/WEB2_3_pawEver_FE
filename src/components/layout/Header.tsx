@@ -17,12 +17,24 @@ export default function Header() {
   // 로그아웃 버튼 클릭 시
   const handleLogout = async () => {
     await logout();
+
+    const currentPath = window.location.pathname;
+    const isChangingPath = currentPath.includes("/UserPage");
+    if (isChangingPath) {
+      navigate("/");
+    }
   };
 
   // 강제 초기화 버튼 클릭 시
   const handleForceReset = () => {
     resetState();
     localStorage.removeItem("auth-storage");
+
+    const currentPath = window.location.pathname;
+    const isChangingPath = currentPath.includes("/UserPage");
+    if (isChangingPath) {
+      navigate("/");
+    }
   };
 
   const handleIsMenuOpen = () => setIsMenuOpen((prev) => !prev);

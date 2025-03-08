@@ -22,7 +22,7 @@ const getAgeFromName = (name: string): string | null => {
   return null;
 };
 
-export default function TestCard({
+export default function NearbyAnimals({
   id,
   imageUrl,
   name,

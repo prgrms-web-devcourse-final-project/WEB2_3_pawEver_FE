@@ -17,7 +17,7 @@ const queryClient = new QueryClient({
       refetchOnMount: false,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
-    } as any, // 타입 오류 우회ㅠㅠ
+    } as any, // 타입 오류 우회할게요!
   },
 });
 
