@@ -33,6 +33,7 @@ export default function Router() {
         <Route path="/Community" element={<Community />} />
         <Route path="/Community/:id" element={<CommunityDetail />} />
         <Route path="/EditCommunity" element={<EditCommunity />} />
+        <Route path="/EditCommunity/:id" element={<EditCommunity />} />
         <Route path="/UserPage/:userId" element={<Userpage />} />
         <Route path="/StaffPage/:staffId" element={<StaffPage />} />
         <Route path="/Donation" element={<Donation />} />
