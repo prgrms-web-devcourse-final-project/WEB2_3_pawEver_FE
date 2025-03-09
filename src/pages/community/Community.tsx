@@ -1,9 +1,26 @@
 import { Link } from "react-router-dom";
-import AnimalCard from "../../common/AnimalCard";
+import CommunityCard from "./components/CommunityCard";
+import { axiosInstance } from "../../api/axios";
+import { useEffect, useState } from "react";
+import { PostType } from "../../types/Post";
 
 export default function Community() {
-  // 임시 데이터: 실제는 각 카드에 고유 id가 포함된 데이터를 사용.
-  const cards = new Array(12).fill(null).map((_, index) => ({ id: index + 1 }));
+  const [posts, setPosts] = useState<PostType[] | null>(null);
+
+  const fetchCommunity = async () => {
+    try {
+      const { data } = await axiosInstance.get("/api/community/posts");
+      console.log(data.data);
+
+      setPosts(data.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCommunity();
+  }, []);
 
   return (
     <section className="w-full my-8">
@@ -41,10 +58,8 @@ export default function Community() {
           </Link>
         </div>
         <div className="grid gap-4 justify-items-start grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-8">
-          {cards.map((card) => (
-            <Link key={card.id} to={`/community/${card.id}`} className="w-full">
-              <AnimalCard />
-            </Link>
+          {posts?.map((post) => (
+            <CommunityCard key={post.id} {...post} />
           ))}
         </div>
         {/* 하단 여백 */}
