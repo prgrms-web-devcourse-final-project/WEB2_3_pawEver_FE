@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import SidebarM from "./SidebarM";
 import ButtonComponent from "../../common/ButtonComponent";
 import logo from "../../assets/icons/logo.svg";
+import SidebarM from "./SidebarM";
 import LoginModal from "./LoginModal";
 import { useAuthStore } from "../../store/authStore";
 
@@ -13,6 +13,21 @@ export default function Header() {
   // Zustand 스토어에서 로그인 상태와 액션, 사용자 정보 가져오기
   const { isLoggedIn, userInfo, logout, resetState } = useAuthStore();
   const navigate = useNavigate();
+
+  //SidebarM에서 발생한 커스텀 이벤트 리스닝
+  useEffect(() => {
+    const handleOpenLoginModal = () => {
+      setIsModalOpen(true);
+    };
+
+    // 이벤트 리스너 등록
+    window.addEventListener("openLoginModal", handleOpenLoginModal);
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener("openLoginModal", handleOpenLoginModal);
+    };
+  }, []);
 
   // 로그아웃 버튼 클릭 시
   const handleLogout = async () => {
