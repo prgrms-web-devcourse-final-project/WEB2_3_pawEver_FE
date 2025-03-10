@@ -2,6 +2,10 @@ import Input from "../../common/InputComponent";
 import Dropdown from "../../common/DropDownComponent";
 import Button from "../../common/ButtonComponent";
 import KakaoMap from "../../components/KakaoMap";
+import Planner from "../../assets/icons/Planner.svg";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+
 import { useEffect, useState } from "react";
 
 // window.kakao에 대한 타입 선언
@@ -32,9 +36,7 @@ interface EditReservationPresenterProps {
 }
 
 function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
-  // 날짜 예약 상태 추가
-  // const [reservationDate, setReservationDate] = useState<Date | null>(null);
-  // 초기 서울 중심 좌표를 기본값으로 설정
+  const [reservationDate, setReservationDate] = useState<Date | null>(null);
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -42,6 +44,15 @@ function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
     latitude: 37.5665,
     longitude: 126.978,
   });
+  const handleDateChange = (date: Date | Date[]) => {
+    if (Array.isArray(date)) {
+      setReservationDate(date[0]); // 첫 번째 날짜만 선택
+      console.log("선택된 날짜:", date[0].toISOString().split("T")[0]);
+    } else {
+      setReservationDate(date);
+      console.log("선택된 날짜:", date.toISOString().split("T")[0]);
+    }
+  };
 
   // 검색된 보호소 목록
   const [shelterOptions, setShelterOptions] = useState<Shelter[]>([]);
@@ -238,8 +249,102 @@ function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
             <p className="text-sm text-gray-500 mb-1">
               날짜 예약 <span className="text-red-500">*</span>
             </p>
-            <Input placeholder="YYYY-MM-DD" className="h-10 w-[400px]" />
+            <Input
+              placeholder="YYYY-MM-DD"
+              className="h-10 w-full pr-10"
+              value={
+                reservationDate
+                  ? reservationDate.toISOString().split("T")[0]
+                  : ""
+              }
+            />
+            <Calendar
+              onChange={handleDateChange}
+              value={reservationDate}
+              className="mt-2 border border-gray-300 rounded-md shadow-md"
+              tileClassName={({ date }) =>
+                reservationDate &&
+                date.toDateString() === reservationDate.toDateString()
+                  ? "bg-main text-white rounded-lg"
+                  : ""
+              }
+            />
           </div>
+
+          <div className="flex gap-2">
+            <Button
+              bgcolor="white"
+              text="black"
+              className="border-[1px] font-medium"
+            >
+              09:00
+            </Button>
+            <Button
+              bgcolor="white"
+              text="black"
+              className="border-[1px] font-medium"
+            >
+              10:00
+            </Button>
+            <Button
+              bgcolor="white"
+              text="black"
+              className="border-[1px] font-medium"
+            >
+              11:00
+            </Button>
+            <Button
+              bgcolor="white"
+              text="black"
+              className="border-[1px] font-medium"
+            >
+              12:00
+            </Button>
+            <Button
+              bgcolor="white"
+              text="black"
+              className="border-[1px] font-medium"
+            >
+              13:00
+            </Button>
+            <Button
+              bgcolor="white"
+              text="black"
+              className="border-[1px] font-medium"
+            >
+              14:00
+            </Button>
+            <Button
+              bgcolor="white"
+              text="black"
+              className="border-[1px] font-medium"
+            >
+              15:00
+            </Button>
+            <Button
+              bgcolor="white"
+              text="black"
+              className="border-[1px] font-medium"
+            >
+              16:00
+            </Button>
+            <Button
+              bgcolor="white"
+              text="black"
+              className="border-[1px] font-medium"
+            >
+              17:00
+            </Button>
+            <Button
+              bgcolor="white"
+              text="black"
+              className="border-[1px] font-medium"
+            >
+              18:00
+            </Button>
+          </div>
+
+          {/* 이부분에 캘린더 만들어줘 */}
 
           <div>
             <p className="text-sm text-gray-500 mb-1">
@@ -255,10 +360,24 @@ function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
               <KakaoMap
                 width="100%"
                 height="100%"
-                centerLat={centerLat}
-                centerLng={centerLng}
-                markers={shelterOptions}
-                selectedShelter={selectedShelterObject}
+                centerLat={37.452327}
+                centerLng={126.653208}
+                markers={[
+                  {
+                    name: "한국동물보호소협회",
+                    latitude: 37.5422976,
+                    longitude: 127.0939648,
+                    phone: "032-XXX-XXXX",
+                    distance: 1500,
+                  },
+                ]}
+                selectedShelter={{
+                  name: "한국동물보호소협회",
+                  latitude: 37.5422976,
+                  longitude: 127.0939648,
+                  phone: "032-XXX-XXXX",
+                  distance: 1.5,
+                }}
               />
             </div>
           </div>
@@ -268,7 +387,7 @@ function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
       {/* 버튼 영역 */}
       <div className="flex justify-center mt-10">
         <Button onClick={onSubmit} className="px-10 py-2">
-          다음
+          제출하기
         </Button>
       </div>
     </div>
