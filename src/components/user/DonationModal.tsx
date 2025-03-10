@@ -1,14 +1,17 @@
 import logo from "../../assets/icons/logo.svg";
 import Button from "../../common/ButtonComponent";
+import { Donation } from "../../store/userDonationStore";
 
 interface DonationModalProps {
   isModalOpen: boolean;
   onClose: () => void;
+  donation: Donation; // 후원 데이터 prop 추가
 }
 
 export default function DonationModal({
   isModalOpen,
   onClose,
+  donation, // 후원 데이터 받기
 }: DonationModalProps) {
   return (
     isModalOpen && (
@@ -21,19 +24,22 @@ export default function DonationModal({
           <div className="self-start space-y-3 my-8 mx-9">
             <div>
               <p className="text-[14px] text-[#5F656C]">후원자</p>
-              <p className="font-semibold text-[16px]">홍길동</p>
+              <p className="font-semibold text-[16px]">
+                {donation.donorName || "익명"}
+              </p>
             </div>
 
             <div>
               <p className="text-[14px] text-[#5F656C]">후원금액</p>
-              <p className="font-semibold text-[16px]">50,000원</p>
+              <p className="font-semibold text-[16px]">
+                {donation.donationAmount.toLocaleString()}원
+              </p>
             </div>
 
             <div>
               <p className="text-[14px] text-[#5F656C]">남기고 싶은 말</p>
               <p className="font-semibold text-[16px]">
-                유기동물들에게 따뜻한 사랑을 전할 수 있어 행복합니다.함께 더
-                많은 생명을 구해 나가요!
+                {donation.donorMessage || "메시지가 없습니다."}
               </p>
             </div>
           </div>

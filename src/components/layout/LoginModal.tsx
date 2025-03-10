@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import logo from "../../assets/icons/logo.svg";
 import { useAuthStore } from "../../store/authStore";
+import logo from "../../assets/icons/logo.svg";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -15,14 +15,23 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     userInfo,
     googleLoginInit,
     kakaoLoginInit,
-    handleOAuthCallback,
   } = useAuthStore();
 
+  // 로그인 콜백 처리 로직
   useEffect(() => {
     if (isOpen) {
-      handleOAuthCallback();
+      // URL에서 code와 state 파라미터 확인
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+      const state = urlParams.get("state");
+
+      // code와 state가 있으면 이미 로그인 진행 중
+      if (code && state) {
+        console.log("[LoginModal] OAuth 콜백 파라미터 감지됨");
+        // 처리는 App.tsx의 AuthHandler 컴포넌트에서 자동으로 수행됨
+      }
     }
-  }, [isOpen, handleOAuthCallback]);
+  }, [isOpen]);
 
   // 로그인 성공 시 모달 닫기
   useEffect(() => {

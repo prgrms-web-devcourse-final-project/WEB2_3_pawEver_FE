@@ -1,64 +1,80 @@
-//URL 정리 및 중복호출 방지 테스트
-/**
- * 전역 인증 상태와 OAuth 로그인/로그아웃 로직을 관리하는 AuthStore
- * @return {AuthState} 인증 상태(isLoggedIn, userInfo, isLoading, error)
- */
-
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import authAxiosInstance from "../api/authAxiosInstance";
 import axios from "axios";
-import { requestJwtFromBackend, JwtRequestPayload } from "../api/auth";
 
-/* UserInfo - 서버/클라이언트에서 공통으로 사용될 유저 정보 타입 */
-interface UserInfo {
+export interface UserInfo {
   id: string;
   name: string;
   email: string;
   picture?: string;
-  accessToken?: string;
+  accessToken?: string; // RefreshToken은 쿠키
   introduction?: string;
 }
 
-/* AuthState : 로그인 상태 및 관련 액션 정의 */
+//소셜 로그인 요청 페이로드
+interface SocialLoginPayload {
+  socialLoginUuid: string;
+  name?: string;
+  profileImageUrl?: string;
+  email?: string;
+  socialLoginProvider: string;
+  latitude: number;
+  longitude: number;
+}
+
+//서버 응답 바디: { isSuccess, status, code, ... }
+interface AuthResponseBody {
+  isSuccess: boolean;
+  status: string;
+  code: string;
+  message?: string;
+}
+
+/* Zustand 상태 */
 interface AuthState {
   isLoggedIn: boolean;
-  userInfo: UserInfo | null;
   isLoading: boolean;
+  isProfileUpdating: boolean;
+  userInfo: UserInfo | null;
   error: string | null;
   processingCode: string | null;
   redirectPath: string;
 
-  /* 전역 액션들 */
   resetState: () => void;
   setLoading: (flag: boolean) => void;
   setError: (msg: string | null) => void;
   setRedirectPath: (path: string) => void;
-  login: (userData: UserInfo) => void;
+  setProfileUpdating: (flag: boolean) => void;
+
+  // 로그인/로그아웃
+  login: (userData: UserInfo) => Promise<void>;
   logout: () => Promise<void>;
 
-  /* OAuth 로그인 시작 (구글/카카오) */
+  // 소셜 로그인 시작
   googleLoginInit: () => void;
   kakaoLoginInit: () => void;
 
-  /*
-   * OAuth 콜백 처리
-   *  URL 파라미터(code, state 등) 확인
-   *  에러 메시지 또는 정상 토큰 발급
-   *  최종적으로 this.login()으로 Zustand 상태 업데이트
-   */
+  // 소셜 콜백 처리
   handleOAuthCallback: () => Promise<void>;
 
-  // 프로필 업데이트 등으로 userInfo의 일부를 갱신할 수 있는 액션
+  // 토큰 재발급
+  refreshUserTokens: () => Promise<boolean>;
+
+  // 프로필 업데이트
   updateUserInfo: (data: Partial<UserInfo>) => void;
+
+  // DB에서 최신 사용자 정보 로드
+  loadUserProfileFromDB: () => Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       isLoggedIn: false,
-      userInfo: null,
       isLoading: false,
+      isProfileUpdating: false,
+      userInfo: null,
       error: null,
       processingCode: null,
       redirectPath: "/",
@@ -70,24 +86,25 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
           error: null,
           processingCode: null,
-          // redirectPath는 리셋하지 않음
         });
       },
-
-      setLoading: (flag) => {
-        set({ isLoading: flag });
+      //소셜 로딩
+      setProfileUpdating: (flag: boolean) => {
+        set({ isProfileUpdating: flag });
       },
+      setLoading: (flag) => set({ isLoading: flag }),
+      setError: (msg) => set({ error: msg }),
+      setRedirectPath: (path) => set({ redirectPath: path }),
 
-      setError: (msg) => {
-        set({ error: msg });
-      },
+      login: async (userData: UserInfo) => {
+        console.log("[AuthStore] 로그인 처리:", userData);
 
-      // 리다이렉트 경로 설정
-      setRedirectPath: (path) => {
-        set({ redirectPath: path });
-      },
+        if (userData?.accessToken) {
+          authAxiosInstance.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${userData.accessToken}`;
+        }
 
-      login: (userData) => {
         set({
           isLoggedIn: true,
           userInfo: userData,
@@ -95,49 +112,46 @@ export const useAuthStore = create<AuthState>()(
         });
       },
 
-      /* 로그아웃 */
+      //로그아웃
       logout: async () => {
+        console.log("[AuthStore] 로그아웃 처리");
+        set({ isLoading: true });
         try {
-          set({ isLoading: true });
-          // AccessToken은 axiosInstance의 인터셉터 혹은 헤더에 직접 설정됨
-          const response = await authAxiosInstance.delete("/api/auth/tokens", {
-            withCredentials: true,
-          });
-
-          if (response.status !== 204 && response.status !== 200) {
-            console.warn("로그아웃 API 응답이 예상과 다릅니다:", response.data);
-          }
-
-          // 상태 초기화
+          delete authAxiosInstance.defaults.headers.common["Authorization"];
           set({
             isLoggedIn: false,
             userInfo: null,
             isLoading: false,
             error: null,
             processingCode: null,
-            // redirectPath는 유지
           });
-          localStorage.removeItem("auth-storage");
+
+          // 소셜로그인 세션 스토리지 정리
+          sessionStorage.removeItem("googleOAuthState");
+          sessionStorage.removeItem("kakaoOAuthState");
+          sessionStorage.removeItem("loginProvider");
+
+          console.log("[AuthStore] 로그아웃 완료");
         } catch (error) {
-          console.error("로그아웃 처리 중 오류:", error);
+          console.error("[AuthStore] 로그아웃 중 오류:", error);
           set({
             error:
               error instanceof Error
                 ? error.message
-                : "로그아웃 중 오류가 발생했습니다",
+                : "로그아웃 중 오류가 발생했습니다.",
             isLoading: false,
           });
         }
       },
 
-      /* 구글 로그인 시작, OAuth URL로 리다이렉트 */
       googleLoginInit: () => {
-        const { setLoading, setError } = get();
-        try {
-          if (get().isLoading) return;
-          setLoading(true);
-          setError(null);
+        const { isLoading, setLoading, setError } = get();
+        if (isLoading) return;
 
+        setLoading(true);
+        setError(null);
+
+        try {
           const state = Math.random().toString(36).substring(2, 15);
           sessionStorage.setItem("googleOAuthState", state);
           sessionStorage.setItem("loginProvider", "google");
@@ -150,7 +164,7 @@ export const useAuthStore = create<AuthState>()(
 
           window.location.href = googleAuthUrl;
         } catch (err) {
-          console.error("구글 로그인 초기화 오류:", err);
+          console.error("[AuthStore] 구글 로그인 초기화 오류:", err);
           set({
             error: "구글 로그인을 시작하는데 실패했습니다.",
             isLoading: false,
@@ -158,14 +172,14 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      /* 카카오 로그인 시작, OAuth URL로 리다이렉트 */
       kakaoLoginInit: () => {
-        const { setLoading, setError } = get();
-        try {
-          if (get().isLoading) return;
-          setLoading(true);
-          setError(null);
+        const { isLoading, setLoading, setError } = get();
+        if (isLoading) return;
 
+        setLoading(true);
+        setError(null);
+
+        try {
           const state = Math.random().toString(36).substring(2, 15);
           sessionStorage.setItem("kakaoOAuthState", state);
           sessionStorage.setItem("loginProvider", "kakao");
@@ -178,7 +192,7 @@ export const useAuthStore = create<AuthState>()(
 
           window.location.href = kakaoAuthUrl;
         } catch (err) {
-          console.error("카카오 로그인 초기화 오류:", err);
+          console.error("[AuthStore] 카카오 로그인 초기화 오류:", err);
           set({
             error: "카카오 로그인을 시작하는데 실패했습니다.",
             isLoading: false,
@@ -186,131 +200,230 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      //로그인 상태 Callback 함수
       handleOAuthCallback: async () => {
-        const { setLoading, setError, login } = get();
+        const { login, loadUserProfileFromDB, setProfileUpdating } = get();
+
         try {
-          // 이미 로그인된 경우
-          if (get().isLoggedIn) {
-            return;
-          }
+          if (get().isLoggedIn) return;
 
           const urlParams = new URLSearchParams(window.location.search);
           const code = urlParams.get("code");
+          if (!code) return;
 
-          // 코드가 없으면 처리 중단
-          if (!code) {
-            return;
-          }
-
-          // 중요: 이미 처리 중인 코드인지 확인 (중복 호출 방지)
+          // 같은 code로 중복처리 방지
           if (get().processingCode === code) {
-            console.log("이 인증 코드는 이미 처리 중입니다");
+            console.log("[AuthStore] 이미 처리 중인 인증 코드");
             return;
           }
 
-          // 코드 처리 시작을 표시
-          set({ processingCode: code });
-
-          setLoading(true);
-          setError(null);
+          // 소셜 인증 콜백 전역 로딩 시작
+          set({
+            processingCode: code,
+            isLoading: true,
+            error: null,
+            isProfileUpdating: false,
+          });
 
           const state = urlParams.get("state");
           const errParam = urlParams.get("error");
           const provider = sessionStorage.getItem("loginProvider");
 
-          // 에러 파라미터가 있으면 즉시 throw
           if (errParam) {
-            throw new Error(`로그인 중 오류가 발생했습니다: ${errParam}`);
+            throw new Error(`로그인 오류: ${errParam}`);
           }
-
-          // state, provider 중 하나라도 없으면 처리 중단
           if (!state || !provider) {
-            // URL 파라미터는 항상 정리
             cleanupUrlParams();
             set({
               isLoading: false,
-              processingCode: null, // 중요: 처리 중 상태 해제
+              processingCode: null,
+              isProfileUpdating: false,
             });
             return;
           }
 
-          // state 매칭 (보안검증)
+          // 보안검증
           const savedState = sessionStorage.getItem(`${provider}OAuthState`);
           if (state !== savedState) {
-            throw new Error("보안 검증에 실패했습니다. 다시 시도해주세요.");
+            throw new Error("보안 검증 실패. 다시 시도해 주세요.");
           }
 
-          let newUserInfo: UserInfo | null = null;
-
-          // 각 SNS별로 토큰/유저정보 요청
+          // 소셜에서 사용자 기본 정보 획득
+          let socialPayload: SocialLoginPayload;
           if (provider === "google") {
-            newUserInfo = await fetchGoogleUserInfo(code);
-          } else if (provider === "kakao") {
-            newUserInfo = await fetchKakaoUserInfo(code);
+            const googleData = await fetchGoogleTokenAndUserData(code);
+            socialPayload = {
+              socialLoginUuid: googleData.userData.sub,
+              name: googleData.userData.name,
+              profileImageUrl: googleData.userData.picture,
+              email: googleData.userData.email,
+              socialLoginProvider: "google",
+              latitude: 0,
+              longitude: 0,
+            };
+          } else {
+            // kakao
+            const kakaoData = await fetchKakaoTokenAndUserData(code);
+            socialPayload = {
+              socialLoginUuid: kakaoData.userData.id.toString(),
+              name: kakaoData.userData.properties?.nickname,
+              profileImageUrl: kakaoData.userData.properties?.profile_image,
+              email: kakaoData.userData.kakao_account?.email,
+              socialLoginProvider: "kakao",
+              latitude: 37.6336457,
+              longitude: 126.7927116,
+            };
           }
 
-          // 받아온 유저 정보가 null이면 에러
-          if (!newUserInfo) {
+          // 백엔드 로그인 요청
+          const { isSuccess, message, accessToken } = await requestBackendLogin(
+            socialPayload
+          );
+          if (!isSuccess || !accessToken) {
             throw new Error(
-              "로그인 처리 중 문제가 발생했습니다. (newUserInfo null)"
+              `백엔드 로그인 실패: ${message || "알 수 없는 오류"}`
             );
           }
 
-          // 최종적으로 Zustand 로그인 처리
-          login(newUserInfo);
+          // 우선 소셜 정보를 기준으로 userInfo 구성
+          const newUserInfo = {
+            id: socialPayload.socialLoginUuid,
+            name: socialPayload.name || "",
+            email: socialPayload.email || "",
+            picture: socialPayload.profileImageUrl,
+            introduction: undefined, // DB에서 다시 불러올 예정
+            accessToken,
+          };
 
-          // URL 파라미터 정리 - 성공 시 항상 실행
+          // Zustand 로그인
+          await login(newUserInfo);
+
+          // ★ DB 프로필 로딩 구간만 별도 스피너 처리
+          setProfileUpdating(true);
+          console.log("[AuthStore] DB에서 추가 프로필 불러오기...");
+          await loadUserProfileFromDB();
+          setProfileUpdating(false);
+
+          // 파라미터 정리
           cleanupUrlParams();
-
-          // 세션 스토리지 정리
           sessionStorage.removeItem(`${provider}OAuthState`);
           sessionStorage.removeItem("loginProvider");
 
-          // 처리 중 상태 해제
+          // 최종 리다이렉트
           set({ processingCode: null });
-
-          // 리다이렉트 경로로 이동
           const redirectTo = get().redirectPath || "/";
           window.location.replace(redirectTo);
         } catch (err) {
-          console.error("handleOAuthCallback 오류:", err);
-
-          // 에러 발생 시에도 URL 파라미터 정리
+          console.error("[AuthStore] handleOAuthCallback 오류:", err);
           cleanupUrlParams();
-
           set({
             error:
               err instanceof Error
                 ? err.message
                 : "로그인 처리 중 오류가 발생했습니다.",
             isLoading: false,
-            processingCode: null, // 중요: 에러 발생 시에도 처리 중 상태 해제
+            isProfileUpdating: false,
+            processingCode: null,
           });
+        } finally {
+          // 전체 소셜 로그인 프로세스 종료
+          set({ isLoading: false, isProfileUpdating: false });
         }
       },
 
-      // 추가: userInfo 업데이트 액션
-      updateUserInfo: (data: Partial<UserInfo>) => {
-        set((state) => ({
-          userInfo: state.userInfo ? { ...state.userInfo, ...data } : null,
-        }));
+      loadUserProfileFromDB: async () => {
+        try {
+          const { userInfo, updateUserInfo } = get();
+          if (!userInfo || !userInfo.accessToken) {
+            console.warn("[AuthStore] 토큰이 없어 프로필 로드 불가");
+            return false;
+          }
+
+          if (!authAxiosInstance.defaults.headers.common["Authorization"]) {
+            authAxiosInstance.defaults.headers.common[
+              "Authorization"
+            ] = `Bearer ${userInfo.accessToken}`;
+          }
+
+          console.log("[AuthStore] 백엔드에서 프로필 정보 GET");
+          const resp = await authAxiosInstance.get("/api/users/profiles");
+          console.log("[AuthStore] 프로필 정보 응답:", resp.data);
+
+          if (resp.status === 200 && resp.data && resp.data.isSuccess) {
+            const profileData = resp.data.data;
+            if (profileData) {
+              updateUserInfo({
+                name: profileData.name,
+                email: profileData.email,
+                picture: profileData.profileImageUrl,
+                introduction: profileData.introduction,
+              });
+              return true;
+            }
+          }
+          return false;
+        } catch (error) {
+          console.error("[AuthStore] 프로필 로드 오류:", error);
+          return false;
+        }
+      },
+
+      refreshUserTokens: async (): Promise<boolean> => {
+        try {
+          const resp = await authAxiosInstance.post(
+            "/api/auth/refreshedtokens",
+            {},
+            { withCredentials: true }
+          );
+          const newAccessToken = resp.headers.authorization?.replace(
+            "Bearer ",
+            ""
+          );
+
+          if (newAccessToken) {
+            authAxiosInstance.defaults.headers.common[
+              "Authorization"
+            ] = `Bearer ${newAccessToken}`;
+            get().updateUserInfo({ accessToken: newAccessToken });
+
+            // 갱신 후 DB프로필도 갱신
+            await get().loadUserProfileFromDB();
+            return true;
+          }
+          return false;
+        } catch (err) {
+          console.error("[AuthStore] 토큰 갱신 실패:", err);
+          return false;
+        }
+      },
+
+      updateUserInfo: (data) => {
+        set((state) => {
+          const merged = state.userInfo ? { ...state.userInfo, ...data } : null;
+          return { userInfo: merged };
+        });
       },
     }),
-
     {
       name: "auth-storage",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        isLoggedIn: state.isLoggedIn,
-        userInfo: state.userInfo,
-        redirectPath: state.redirectPath, // 추가: 리다이렉트 경로 저장
-      }),
+
+      // accessToken은 저장하지 않고, 기본 프로필만 로컬스토리지에 보관
+      partialize: (state) => {
+        let safeUserInfo: UserInfo | null = null;
+        if (state.userInfo) {
+          const { accessToken, ...rest } = state.userInfo;
+          safeUserInfo = { ...rest };
+        }
+        return {
+          isLoggedIn: state.isLoggedIn,
+          userInfo: safeUserInfo,
+          redirectPath: state.redirectPath,
+        };
+      },
     }
   )
 );
 
-/* URL 파라미터 정리 */
 function cleanupUrlParams() {
   const url = new URL(window.location.href);
   ["code", "state", "error", "scope", "authuser", "prompt"].forEach((p) =>
@@ -319,132 +432,127 @@ function cleanupUrlParams() {
   window.history.replaceState({}, document.title, url.toString());
 }
 
-//위치정보 받아오기 전
-/* 구글 사용자 정보 호출*/
-async function fetchGoogleUserInfo(code: string): Promise<UserInfo | null> {
-  try {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
-    const clientSecret = import.meta.env.VITE_GOOGLE_CLIENT_SECRET || "";
-    const redirectUri = import.meta.env.VITE_REDIRECT_URI || "";
+async function fetchGoogleTokenAndUserData(code: string) {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+  const clientSecret = import.meta.env.VITE_GOOGLE_CLIENT_SECRET || "";
+  const redirectUri = import.meta.env.VITE_REDIRECT_URI || "";
 
-    // 구글 토큰 요청
-    const tokenResponse = await axios.post(
-      "https://oauth2.googleapis.com/token",
-      new URLSearchParams({
-        grant_type: "authorization_code",
-        client_id: clientId,
-        redirect_uri: redirectUri,
-        code,
-        client_secret: clientSecret,
-      }),
-      {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      }
-    );
-    const tokenData = tokenResponse.data;
-    if (!tokenData.access_token) {
-      throw new Error(`구글 토큰 요청 실패: ${JSON.stringify(tokenData)}`);
-    }
+  // 구글 토큰
+  const tokenRes = await axios.post(
+    "https://oauth2.googleapis.com/token",
+    new URLSearchParams({
+      grant_type: "authorization_code",
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      code,
+      client_secret: clientSecret,
+    }),
+    { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+  );
 
-    //  사용자 정보 요청
-    const userResponse = await axios.get(
-      "https://www.googleapis.com/oauth2/v3/userinfo",
-      {
-        headers: { Authorization: `Bearer ${tokenData.access_token}` },
-      }
-    );
-    if (userResponse.status !== 200) {
-      throw new Error("구글 사용자 정보 요청 실패");
-    }
-    const googleUserData = userResponse.data;
-
-    //  백엔드로 JWT 요청
-    const payload: JwtRequestPayload = {
-      socialLoginUuid: googleUserData.sub,
-      name: googleUserData.name,
-      profileImageUrl: googleUserData.picture || "",
-      email: googleUserData.email,
-      socialLoginProvider: "google",
-      latitude: "0",
-      longitude: "0",
-    };
-    const jwtData = await requestJwtFromBackend(payload);
-    if (!jwtData.isSuccess) return null;
-
-    return {
-      id: googleUserData.sub,
-      name: googleUserData.name,
-      email: googleUserData.email,
-      picture: googleUserData.picture,
-      accessToken: jwtData.accessToken,
-    };
-  } catch (err) {
-    console.error("fetchGoogleUserInfo 오류:", err);
-    return null;
+  if (!tokenRes.data.access_token) {
+    throw new Error("구글 토큰 요청 실패");
   }
+
+  // 유저정보
+  const userRes = await axios.get(
+    "https://www.googleapis.com/oauth2/v3/userinfo",
+    {
+      headers: { Authorization: `Bearer ${tokenRes.data.access_token}` },
+    }
+  );
+
+  return {
+    userData: userRes.data, // { sub, name, email, picture, ... }
+    accessToken: tokenRes.data.access_token,
+  };
 }
 
-/* 카카오 사용자 정보 호출 */
-async function fetchKakaoUserInfo(code: string): Promise<UserInfo | null> {
+async function fetchKakaoTokenAndUserData(code: string) {
+  const clientId = import.meta.env.VITE_KAKAO_CLIENT_ID || "";
+  const redirectUri = import.meta.env.VITE_REDIRECT_URI || "";
+
+  // 카카오 토큰
+  const tokenRes = await axios.post(
+    "https://kauth.kakao.com/oauth/token",
+    new URLSearchParams({
+      grant_type: "authorization_code",
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      code,
+    }),
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+      },
+    }
+  );
+
+  if (!tokenRes.data.access_token) {
+    throw new Error("카카오 토큰 요청 실패");
+  }
+
+  // 유저정보
+  const userRes = await axios.get("https://kapi.kakao.com/v2/user/me", {
+    headers: { Authorization: `Bearer ${tokenRes.data.access_token}` },
+  });
+
+  return {
+    userData: userRes.data,
+    accessToken: tokenRes.data.access_token,
+  };
+}
+
+/**
+ * /api/auth/tokens 호출
+ * - 응답 body는 { isSuccess, status, code, ... }
+ * - 응답 헤더에 Authorization(AccessToken)
+ */
+async function requestBackendLogin(payload: SocialLoginPayload) {
   try {
-    const clientId = import.meta.env.VITE_KAKAO_CLIENT_ID || "";
-    const redirectUri = import.meta.env.VITE_REDIRECT_URI || "";
-
-    //  카카오 토큰 요청
-    const tokenResponse = await axios.post(
-      "https://kauth.kakao.com/oauth/token",
-      new URLSearchParams({
-        grant_type: "authorization_code",
-        client_id: clientId,
-        redirect_uri: redirectUri,
-        code,
-      }),
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-        },
-      }
+    const resp = await authAxiosInstance.post<AuthResponseBody>(
+      "/api/auth/tokens",
+      payload,
+      { withCredentials: true }
     );
-    const tokenData = tokenResponse.data;
-    if (!tokenData.access_token) {
-      throw new Error(`카카오 토큰 요청 실패: ${JSON.stringify(tokenData)}`);
+
+    // 헤더에서 AccessToken 추출
+    const newAccessToken = resp.headers.authorization?.replace("Bearer ", "");
+
+    if (!newAccessToken) {
+      return {
+        isSuccess: false,
+        message: "응답에 AccessToken이 없습니다.",
+        accessToken: "",
+      };
     }
 
-    // 사용자 정보 요청
-    const userResponse = await axios.get("https://kapi.kakao.com/v2/user/me", {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
-
-    if (userResponse.status !== 200) {
-      throw new Error("카카오 사용자 정보 요청 실패");
+    // body는 단순 { isSuccess, status, code } 구조
+    const data = resp.data;
+    return {
+      isSuccess: data.isSuccess,
+      status: data.status,
+      code: data.code,
+      message: data.message,
+      accessToken: newAccessToken,
+    };
+  } catch (error) {
+    console.error("[requestBackendLogin] 오류:", error);
+    if (axios.isAxiosError(error) && error.response?.data) {
+      const eData = error.response.data as any;
+      return {
+        isSuccess: false,
+        message: eData?.message || "로그인 API 오류",
+        accessToken: "",
+      };
     }
-
-    const kakaoUserData = userResponse.data;
-
-    // UserInfo 객체 생성
-    const user: UserInfo = {
-      id: kakaoUserData.id.toString(),
-      name: kakaoUserData.properties?.nickname || "카카오 사용자",
-      email: kakaoUserData.kakao_account?.email || "",
-      picture: kakaoUserData.properties?.profile_image || "",
+    return {
+      isSuccess: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "로그인 처리 중 알 수 없는 오류",
+      accessToken: "",
     };
-
-    // 백엔드로 JWT 요청
-    const payload: JwtRequestPayload = {
-      socialLoginUuid: user.id,
-      name: user.name,
-      profileImageUrl: user.picture || "",
-      email: user.email,
-      socialLoginProvider: "kakao",
-      latitude: "37.6336457",
-      longitude: "126.7927116",
-    };
-    const jwtData = await requestJwtFromBackend(payload);
-    if (!jwtData.isSuccess) return null;
-    user.accessToken = jwtData.accessToken;
-    return user;
-  } catch (err) {
-    console.error("fetchKakaoUserInfo 오류:", err);
-    return null;
   }
 }
