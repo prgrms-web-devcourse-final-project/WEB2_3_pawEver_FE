@@ -1,29 +1,32 @@
 import { useEffect, useState } from "react";
-import { getComment } from "../../../api/fetchComment";
-import getRelativeTime from "../../../utils/getRelativeTime";
-import { useNavigate } from "react-router-dom";
+import {
+  createComment,
+  deleteComment,
+  getComment,
+  updateComment,
+} from "../../../api/fetchComment";
+import { useAuthStore } from "../../../store/authStore";
+import Comment from "./Comment";
+import { CommentType } from "../../../types/Comment";
 
-interface CommentType {
-  replyId: number;
-  userId: number;
-  username: string;
-  profileImageUrl: string;
-  postId: number;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
-export default function CommentSection({ post_Id }: { post_Id: string }) {
-  const navigate = useNavigate();
+export default function CommentSection({
+  post_Id,
+}: {
+  post_Id: number | undefined;
+}) {
+  const { userInfo } = useAuthStore();
 
-  const [commentList, setCommentList] = useState<CommentType[] | null>(null);
+  const [commentList, setCommentList] = useState<CommentType[]>([]);
+  const [comment, setComment] = useState<string>("");
   const [showButtons, setShowButtons] = useState(false);
 
-  const getCommentData = async (post_Id: string) => {
+  // 댓글 목록
+  const getCommentData = async () => {
+    if (!post_Id) return;
     try {
       const data = await getComment(post_Id);
       console.log("댓글", data);
-      setCommentList(data);
+      setCommentList(data.replies);
     } catch (err) {
       console.log(err);
     }
@@ -31,31 +34,71 @@ export default function CommentSection({ post_Id }: { post_Id: string }) {
 
   useEffect(() => {
     if (!post_Id) return;
-    getCommentData(post_Id);
+    getCommentData();
   }, [post_Id]);
 
-  if (!commentList) {
-    return (
-      <div className="p-6">
-        <p>Loading...</p>
-      </div>
-    );
-  }
+  // 댓글 등록
+  const handleSubmitComment = async () => {
+    if (!post_Id || !comment.trim()) return;
+    try {
+      const response = await createComment(post_Id, comment);
+      setComment("");
+      setShowButtons(false);
+      setCommentList((prev) => [...prev, response.data]);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  // 댓글 삭제
+  const confirmDelete = async (postId: number, replyId: number) => {
+    if (!postId || !replyId) return;
+
+    try {
+      await deleteComment(postId, replyId);
+      setCommentList((prev) =>
+        prev.filter((comment) => comment.replyId !== replyId)
+      );
+    } catch (err) {
+      console.log("게시글 삭제 실패", err);
+    }
+  };
+
+  // 댓글 수정
+  const handleEditComment = async (
+    postId: number,
+    replyId: number,
+    editcomment: string
+  ) => {
+    if (!postId || !replyId || !editcomment.trim()) return;
+    try {
+      await updateComment(postId, replyId, editcomment);
+      setCommentList((prev) =>
+        prev.map((comment) =>
+          comment.replyId === replyId
+            ? { ...comment, content: editcomment }
+            : comment
+        )
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
   return (
     <div>
       <span className="text-lg font-semibold">댓글 {commentList.length}개</span>
       {/* 댓글 입력 */}
-      {/* <div className="mt-4">
+      {userInfo && (
+        <div className="mt-4">
           <div className="flex items-start gap-3">
             <img
-              src={currentUser.avatar}
+              src={userInfo.picture}
               alt="User Avatar"
               className="w-10 h-10 rounded-full object-cover"
             />
             <div className="w-full">
               <textarea
-                ref={textareaRef}
-                placeholder="댓글을 입력하세요."
+                placeholder="댓글을 입력하세요"
                 className="w-full border-b border-gray-300 focus:border-blue-500 focus:outline-none bg-transparent resize-none py-2 overflow-hidden"
                 rows={1}
                 value={comment}
@@ -67,58 +110,39 @@ export default function CommentSection({ post_Id }: { post_Id: string }) {
           {showButtons && (
             <div className="flex justify-end mt-2 gap-2">
               <button
-                // onClick={() => {
-                //   setComment("");
-                //   setShowButtons(false);
-                // }}
+                onClick={() => {
+                  setComment("");
+                  setShowButtons(false);
+                }}
                 className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-md"
               >
                 취소
               </button>
               <button
-                // onClick={handleAddComment}
+                onClick={handleSubmitComment}
                 className="bg-main hover:bg-point text-white px-4 py-2 rounded-md"
               >
                 댓글
               </button>
             </div>
           )}
-        </div> */}
+        </div>
+      )}
 
       {/* 댓글 목록 */}
       <div className="mt-6 space-y-4">
-        {commentList.map((comment) => (
-          <div key={comment.replyId} className="flex items-start">
-            <img
-              src={comment.profileImageUrl}
-              alt="Comment User Avatar"
-              className="w-10 h-10 rounded-full mr-3 object-cover"
+        {commentList.length === 0 ? (
+          <p>작성된 댓글이 없습니다!</p>
+        ) : (
+          commentList.map((comment) => (
+            <Comment
+              key={comment.replyId}
+              comment={comment}
+              onUpdateComment={handleEditComment}
+              onDeleteComment={confirmDelete}
             />
-            <div className="bg-gray-100 rounded-md p-3 flex-1">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">
-                  {comment.username}
-                </span>
-                <span className="text-xs text-gray-400">
-                  {getRelativeTime(new Date(comment.createdAt).getTime())}
-                </span>
-              </div>
-              <div className="text-sm text-gray-700 mt-1">
-                {comment.content}
-              </div>
-
-              {/* 삭제 버튼: 본인 댓글인 경우에만 표시 */}
-              {/* {comment.userId === currentUser.id && (
-                  <button
-                    className="text-xs text-red-500 mt-2"
-                    // onClick={() => handleDeleteComment(item.id, item.authorId)}
-                  >
-                    삭제
-                  </button>
-                )} */}
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import defaultImg from "../../assets/images/exampleAnimal.png";
 import more from "../../assets/icons/more.svg";
 import { useNavigate, useParams } from "react-router-dom";
 import { PostType } from "../../types/Post";
@@ -64,6 +63,7 @@ export default function CommunityDetail() {
   }, [postId]);
 
   const { userInfo } = useAuthStore();
+  console.log(userInfo?.id);
   const isAuthor = userInfo?.id === String(post?.userUuid);
   const navigate = useNavigate();
 
@@ -100,11 +100,13 @@ export default function CommunityDetail() {
     <section className="w-full my-8">
       <div className="max-w-[640px] mx-auto px-4">
         {/* 동물 카드 (임시 이미지) */}
-        <img
-          src={post.images.length > 0 ? post.images[0] : defaultImg}
-          alt="대체 이미지"
-          className="object-cover w-full"
-        />
+        {post.thumbnailImage && (
+          <img
+            src={post.thumbnailImage}
+            alt="thumbnail"
+            className="object-cover w-full"
+          />
+        )}
         {/* 게시물 제목, 작성자, 시간 */}
         <div className="relative flex mt-6">
           <h1 className="text-2xl font-bold">{post.title}</h1>
@@ -143,7 +145,7 @@ export default function CommunityDetail() {
           <Viewer initialValue={contentWithImages} />
         </div>
         {/* 댓글 섹션 */}
-        {/* <CommentSection post_Id={post?.id ? String(post.id) : ""} /> */}
+        <CommentSection post_Id={post.id} />
       </div>
 
       {/* 삭제확인 모달*/}
