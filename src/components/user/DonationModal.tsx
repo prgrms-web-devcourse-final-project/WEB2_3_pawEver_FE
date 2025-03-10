@@ -75,7 +75,7 @@ export default function DonationModal({
             <div>
               <p className="text-[14px] text-[#5F656C]">후원자</p>
               <p className="font-semibold text-[16px]">
-                {donation.donorName || "익명의 후원자"}
+                {donation.donorName || "익명"}
               </p>
             </div>
 
