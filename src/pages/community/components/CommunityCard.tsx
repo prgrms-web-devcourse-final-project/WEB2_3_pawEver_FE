@@ -7,8 +7,8 @@ export default function CommunityCard({
   id,
   author,
   profileImage,
+  thumbnailImage,
   title,
-  images,
   createdAt,
 }: PostType) {
   return (
@@ -17,7 +17,7 @@ export default function CommunityCard({
         {/* 16:9 비율 유지 */}
         <div className="w-full aspect-video rounded-lg overflow-hidden">
           <img
-            src={images.length > 0 ? images[0] : defaultImg}
+            src={thumbnailImage ? thumbnailImage : defaultImg}
             alt="thumbnail"
             className="w-full h-full object-cover cursor-pointer"
           />

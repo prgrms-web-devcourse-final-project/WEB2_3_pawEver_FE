@@ -1,6 +1,6 @@
 import { axiosInstance } from "./axios";
 
-export const getComment = async (postId: string) => {
+export const getComment = async (postId: number) => {
   try {
     const { data } = await axiosInstance.get(
       `/api/community/${postId}/replies`
@@ -13,7 +13,7 @@ export const getComment = async (postId: string) => {
   }
 };
 
-export const createComment = async (postId: string, content: string) => {
+export const createComment = async (postId: number, content: string) => {
   try {
     const response = await axiosInstance.post(
       `/api/community/${postId}/replies`,
@@ -27,7 +27,7 @@ export const createComment = async (postId: string, content: string) => {
 };
 
 export const updateComment = async (
-  postId: string,
+  postId: number,
   replyId: number,
   content: string
 ) => {
@@ -43,7 +43,7 @@ export const updateComment = async (
   }
 };
 
-export const deleteComment = async (postId: string, replyId: number) => {
+export const deleteComment = async (postId: number, replyId: number) => {
   try {
     await axiosInstance.delete(`/api/community/${postId}/replies/${replyId}`);
   } catch (err) {

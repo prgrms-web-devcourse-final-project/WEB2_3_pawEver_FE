@@ -3,6 +3,7 @@ export interface PostType {
   userUuid: string;
   author: string;
   profileImage: string;
+  thumbnailImage: string;
   title: string;
   content: string;
   images: string[];
