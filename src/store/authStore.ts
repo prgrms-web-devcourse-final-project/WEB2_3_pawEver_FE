@@ -97,8 +97,6 @@ export const useAuthStore = create<AuthState>()(
       setRedirectPath: (path) => set({ redirectPath: path }),
 
       login: async (userData: UserInfo) => {
-        console.log("[AuthStore] 로그인 처리:", userData);
-
         if (userData?.accessToken) {
           authAxiosInstance.defaults.headers.common[
             "Authorization"
@@ -114,7 +112,6 @@ export const useAuthStore = create<AuthState>()(
 
       //로그아웃
       logout: async () => {
-        console.log("[AuthStore] 로그아웃 처리");
         set({ isLoading: true });
         try {
           delete authAxiosInstance.defaults.headers.common["Authorization"];
@@ -130,8 +127,6 @@ export const useAuthStore = create<AuthState>()(
           sessionStorage.removeItem("googleOAuthState");
           sessionStorage.removeItem("kakaoOAuthState");
           sessionStorage.removeItem("loginProvider");
-
-          console.log("[AuthStore] 로그아웃 완료");
         } catch (error) {
           console.error("[AuthStore] 로그아웃 중 오류:", error);
           set({
@@ -212,7 +207,6 @@ export const useAuthStore = create<AuthState>()(
 
           // 같은 code로 중복처리 방지
           if (get().processingCode === code) {
-            console.log("[AuthStore] 이미 처리 중인 인증 코드");
             return;
           }
 
@@ -257,8 +251,8 @@ export const useAuthStore = create<AuthState>()(
               profileImageUrl: googleData.userData.picture,
               email: googleData.userData.email,
               socialLoginProvider: "google",
-              latitude: 0,
-              longitude: 0,
+              latitude: 37.413294,
+              longitude: 127.269311,
             };
           } else {
             // kakao
@@ -299,7 +293,7 @@ export const useAuthStore = create<AuthState>()(
 
           // ★ DB 프로필 로딩 구간만 별도 스피너 처리
           setProfileUpdating(true);
-          console.log("[AuthStore] DB에서 추가 프로필 불러오기...");
+
           await loadUserProfileFromDB();
           setProfileUpdating(false);
 
@@ -344,9 +338,7 @@ export const useAuthStore = create<AuthState>()(
             ] = `Bearer ${userInfo.accessToken}`;
           }
 
-          console.log("[AuthStore] 백엔드에서 프로필 정보 GET");
           const resp = await authAxiosInstance.get("/api/users/profiles");
-          console.log("[AuthStore] 프로필 정보 응답:", resp.data);
 
           if (resp.status === 200 && resp.data && resp.data.isSuccess) {
             const profileData = resp.data.data;

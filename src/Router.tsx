@@ -2,7 +2,6 @@ import { Route, Routes } from "react-router-dom";
 import Home from "./pages/home/Home";
 import AnimalBoard from "./pages/animalboard/AnimalBoard";
 import AnimalDetail from "./pages/animaldetail/AnimalDetail";
-import EditReservation from "./pages/editreservation/EditReservation";
 import EditCommunity from "./pages/editcommunity/EditCommunity";
 import Matching from "./pages/matching/Matching";
 import MatchingProgress from "./pages/matching/MatchingProgress";
@@ -11,13 +10,12 @@ import MatchingResult from "./pages/matching/MatchingResult";
 import Community from "./pages/community/Community";
 import CommunityDetail from "./pages/communitydetail/CommunityDetail";
 import Userpage from "./pages/userpage/UserPage";
-import StaffPage from "./pages/staffpage/StaffPage";
 import NotFound from "./pages/notfound/NotFound";
 import RootLayout from "./components/layout/RootLayout";
 import Donation from "./pages/donation/Donation";
 import DonationFail from "./pages/donation/components/DonationFail";
 import DonationSuccess from "./pages/donation/components/DonationSuccess";
-//
+
 export default function Router() {
   return (
     <Routes>
@@ -25,7 +23,6 @@ export default function Router() {
         <Route path="/" element={<Home />} />
         <Route path="/AnimalBoard" element={<AnimalBoard />} />
         <Route path="/AnimalBoard/:id" element={<AnimalDetail />} />
-        <Route path="/EditReservation" element={<EditReservation />} />
         <Route path="/Matching" element={<Matching />} />
         <Route path="/Matching/progress" element={<MatchingProgress />} />
         <Route path="/Matching/complete" element={<MatchingComplete />} />
@@ -35,7 +32,6 @@ export default function Router() {
         <Route path="/EditCommunity" element={<EditCommunity />} />
         <Route path="/EditCommunity/:id" element={<EditCommunity />} />
         <Route path="/UserPage/:userId" element={<Userpage />} />
-        <Route path="/StaffPage/:staffId" element={<StaffPage />} />
         <Route path="/Donation" element={<Donation />} />
         <Route path="/Donation/success" element={<DonationSuccess />} />
         <Route path="/Donation/fail" element={<DonationFail />} />

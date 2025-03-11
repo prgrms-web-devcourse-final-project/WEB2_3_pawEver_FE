@@ -2,7 +2,6 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/icons/logo.svg";
 import community from "../../assets/icons/community.svg";
 import charity from "../../assets/icons/charity.svg";
-import reservation from "../../assets/icons/reservation.svg";
 import ButtonComponent from "../../common/ButtonComponent";
 import { useAuthStore } from "../../store/authStore";
 
@@ -138,14 +137,7 @@ export default function SidebarM({ isOpen, onClose }: SidebarProps) {
             <img src={community} className="h-6 " />
             <span>커뮤니티</span>
           </Link>
-          <Link
-            to="/EditReservation"
-            onClick={onClose}
-            className="flex items-center space-x-2 "
-          >
-            <img src={reservation} alt="PAWEVER Logo" className="h-6 " />
-            <span>예약상담</span>
-          </Link>
+
           <Link
             to="/Donation"
             onClick={onClose}

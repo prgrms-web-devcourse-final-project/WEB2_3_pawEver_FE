@@ -13,8 +13,7 @@ export default function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Zustand 스토어에서 로그인 상태와 액션, 사용자 정보, isProfileUpdating 가져오기
-  const { isLoggedIn, userInfo, logout, resetState, isProfileUpdating } =
-    useAuthStore();
+  const { isLoggedIn, userInfo, logout, isProfileUpdating } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,18 +37,6 @@ export default function Header() {
     }
   };
 
-  // 강제 초기화 버튼 클릭 시, 제거할거에욧
-  const handleForceReset = () => {
-    resetState();
-    localStorage.removeItem("auth-storage");
-
-    const currentPath = window.location.pathname;
-    const isChangingPath = currentPath.includes("/UserPage");
-    if (isChangingPath) {
-      navigate("/");
-    }
-  };
-
   const handleIsMenuOpen = () => setIsMenuOpen((prev) => !prev);
   const handleLoginClick = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -65,7 +52,6 @@ export default function Header() {
   const navLinks = [
     { to: "/AnimalBoard", label: "입양동물찾기" },
     { to: "/Community", label: "커뮤니티" },
-    { to: "/EditReservation", label: "예약/상담" },
     { to: "/Donation", label: "후원하기" },
   ];
 
@@ -132,15 +118,14 @@ export default function Header() {
                   로그아웃
                 </ButtonComponent>
 
-                {/* 강제 초기화 버튼 */}
-                <ButtonComponent
+                {/* <ButtonComponent
                   onClick={handleForceReset}
                   bgcolor="white"
                   text="black"
                   className="border-[1px] border-gray-300 hover:bg-white font-medium"
                 >
                   강제 초기화
-                </ButtonComponent>
+                </ButtonComponent> */}
               </>
             ) : (
               <ButtonComponent

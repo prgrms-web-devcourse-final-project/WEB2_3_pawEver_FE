@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
 import getAnimalDetail, {
   AnimalDetailResponse,
 } from "../../api/getAnimalDetail";
@@ -9,19 +8,24 @@ import LikeIcon from "../../assets/icons/like.svg?react";
 import mapMarker from "../../assets/icons/mapMarker.svg";
 import exampleAnimal from "../../assets/images/exampleAnimal.png";
 import KakaoMap from "../../components/KakaoMap";
+import { useAnimalLikeStore } from "../../store/animalLikeStore";
 
 export default function AnimalDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
   const [detailData, setDetailData] = useState<AnimalDetailResponse | null>(
     null
   );
-  const [isLiked, setIsLiked] = useState(false);
+
+  // Zustand 스토어에서 좋아요 상태 및 토글 함수를 사용
+  const { likedAnimals, toggleAnimalLike } = useAnimalLikeStore();
+
+  // id가 반드시 숫자임을 보장
+  const detailId: number = id ? Number(id) : 0;
 
   useEffect(() => {
     if (!id) return;
-    getAnimalDetail(+id)
+    getAnimalDetail(Number(id))
       .then((res) => {
         console.log("동물 상세 응답:", res);
         setDetailData(res);
@@ -42,7 +46,7 @@ export default function AnimalDetail() {
 
   const {
     data: {
-      id: detailId,
+      id: dataId,
       imageUrl,
       name,
       neuteredStatus,
@@ -57,12 +61,12 @@ export default function AnimalDetail() {
     },
   } = detailData;
 
-  // 성별
+  // 성별 텍스트
   let sexText = "미상";
   if (name.includes("남아")) sexText = "남아";
   else if (name.includes("여아")) sexText = "여아";
 
-  // 중성화
+  // 중성화 상태 텍스트
   const neuterText =
     neuteredStatus === "Y"
       ? "중성화 완료"
@@ -70,8 +74,8 @@ export default function AnimalDetail() {
       ? "중성화 안됨"
       : "정보 없음";
 
-  // 특징
-  const parsedCharacteristics = characteristics
+  // 특징 파싱
+  const parsedCharacteristics: string[] = characteristics
     ? characteristics
         .split(/[.,]/)
         .map((item) => item.trim())
@@ -79,13 +83,21 @@ export default function AnimalDetail() {
     : ["정보 없음"];
 
   const detailRows = [
-    { label: "유기번호", value: detailId },
+    { label: "유기번호", value: dataId },
     { label: "중성화 여부", value: neuterText },
     { label: "몸무게", value: weight || "정보 없음" },
     { label: "털색", value: color || "정보 없음" },
   ];
 
-  // 지도 마커
+  // 좋아요 여부는 Zustand 스토어를 통해 결정
+  const isLiked: boolean = likedAnimals.includes(dataId);
+
+  // 하트 아이콘 클릭 시, toggleAnimalLike 호출
+  const handleToggleLike = () => {
+    toggleAnimalLike(dataId);
+  };
+
+  // 지도 마커 설정
   const hasValidLocation =
     typeof latitude === "number" && typeof longitude === "number";
   const shelterMarkers = hasValidLocation
@@ -103,7 +115,7 @@ export default function AnimalDetail() {
     <div className="max-w-4xl mx-auto p-6">
       {/* 상단 영역: 이미지 + 정보 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 이미지 영역: 원본 비율 유지를 위해 object-contain */}
+        {/* 이미지 영역 */}
         <div className="w-full flex justify-center items-center rounded-lg overflow-hidden">
           <img
             src={imageUrl || exampleAnimal}
@@ -112,15 +124,16 @@ export default function AnimalDetail() {
           />
         </div>
 
-        {/* 동물 정보 */}
+        {/* 동물 정보 영역 */}
         <div className="flex flex-col">
           <div className="flex items-center justify-between border-b border-gray-300 pb-2">
             <h2 className="text-2xl md:text-3xl font-semibold leading-snug">
               {name}
             </h2>
             <button
-              onClick={() => setIsLiked(!isLiked)}
+              onClick={handleToggleLike}
               className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              type="button"
             >
               <LikeIcon
                 className="w-6 h-6"
@@ -167,16 +180,10 @@ export default function AnimalDetail() {
               </span>
             </p>
           </div>
-
-          <div className="mt-4">
-            <Button className="bg-main text-white hover:bg-point w-full">
-              상담하기
-            </Button>
-          </div>
         </div>
       </div>
 
-      {/* 하단: 지도 */}
+      {/* 하단 영역: 지도 */}
       <div className="mt-6 border-t border-gray-300 pt-4">
         <h3 className="text-lg font-medium flex items-center">
           <img src={mapMarker} className="mr-1" alt="map marker" />
