@@ -15,7 +15,7 @@ export default function DonationModal({
 }: DonationModalProps) {
   return (
     isModalOpen && (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 mt-10 px-4">
+      <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black bg-opacity-50 px-4">
         <div className="w-full max-w-sm sm:max-w-md h-auto bg-white rounded-3xl flex flex-col items-center justify-center px-4 py-8">
           <div className="flex gap-1 ">
             <img src={logo} alt="사이트로고" className="w-6 h-6" />

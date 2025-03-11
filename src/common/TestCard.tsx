@@ -1,9 +1,13 @@
-import like from "../assets/icons/like.svg";
+import { MouseEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAnimalLikeStore } from "../store/animalLikeStore";
+import { useToggleLike } from "../hooks/useToggleLike";
+import LikeIcon from "../assets/icons/like.svg?react";
 
 export interface AnimalProps {
   desertionNo: number;
   popfile?: string;
-  kindCd: string; // 예: "믹스견 2021(년생) (여아)" 또는 "한국 고양이 2025(60일미만)(년생) (여아)"
+  kindCd: string;
   careNm?: string;
   neuterYn?: string;
   weight?: string;
@@ -12,7 +16,6 @@ export interface AnimalProps {
 
 const getAgeFromName = (name: string): string | null => {
   const currentYear = new Date().getFullYear();
-  // 4자리 연도 뒤에 0개 이상의 괄호 그룹이 나오고, 마지막에 (년생)으로 끝나는 패턴
   const regex = /(\d{4})(?:\([^)]*\))*\(년생\)/;
   const match = name.match(regex);
   if (match && match[1]) {
@@ -32,13 +35,33 @@ export default function TestCard({
   weight,
   sexCd,
 }: AnimalProps) {
+  const navigate = useNavigate();
+  const { likedAnimals } = useAnimalLikeStore();
+  const { mutate: toggleLike } = useToggleLike();
+
+  // 좋아요 여부
+  const isLiked = likedAnimals.includes(desertionNo);
+
+  // 나이, 이름 정제
   const age = getAgeFromName(kindCd);
-  // "YYYY(...)(년생)" 부분(앞의 공백 포함)을 제거
   const cleanedName = kindCd.replace(/\s*\d{4}(?:\([^)]*\))*\(년생\)/, "");
+
+  // 카드 전체 클릭 → 상세 페이지 이동
+  const handleCardClick = () => {
+    navigate(`/AnimalBoard/${desertionNo}`);
+  };
+
+  // 하트 아이콘 클릭 시 → 낙관적 업데이트
+  const handleHeartClick = (e: MouseEvent<HTMLButtonElement>) => {
+    // 상위(카드) 클릭 이벤트 전파 방지
+    e.preventDefault();
+    e.stopPropagation();
+    toggleLike(desertionNo);
+  };
 
   return (
     <div
-      key={desertionNo}
+      onClick={handleCardClick}
       className="
         w-full
         min-w-[150px]
@@ -51,9 +74,9 @@ export default function TestCard({
         transition-all
         duration-200
         hover:shadow-lg
+        cursor-pointer
       "
     >
-      {/* 16:9 비율 유지 */}
       <div className="w-full aspect-video rounded-t-lg overflow-hidden">
         <img
           src={popfile ?? "https://via.placeholder.com/150"}
@@ -63,7 +86,6 @@ export default function TestCard({
         />
       </div>
 
-      {/* 내용 영역: flex-col + justify-between */}
       <div className="p-3 sm:p-4 flex flex-col justify-between flex-1">
         <div>
           <span className="block font-semibold text-sm sm:text-base mt-1 sm:mt-2">
@@ -94,7 +116,27 @@ export default function TestCard({
               </span>
             )}
           </div>
-          <img src={like} alt="좋아요" className="w-4 h-4 flex-shrink-0" />
+
+          <button
+            onClick={handleHeartClick}
+            type="button"
+            className="
+              min-w-[44px]
+              min-h-[44px]
+              flex
+              items-center
+              justify-center
+              rounded-full
+              hover:bg-gray-100
+              transition-colors
+            "
+          >
+            <LikeIcon
+              className="w-5 h-5"
+              fill={isLiked ? "#FF0000" : "none"}
+              stroke={isLiked ? "#EF4444" : "currentColor"}
+            />
+          </button>
         </div>
       </div>
     </div>
