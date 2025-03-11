@@ -28,7 +28,7 @@ export default function CommunityCard({
             <img
               src={profileImage}
               alt="userprofileimg"
-              className="w-6 h-6 rounded-full"
+              className="w-6 h-6 rounded-full object-cover"
             />
             <p>{author}</p>
             <p className="pl-1">

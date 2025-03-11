@@ -211,7 +211,7 @@ export default function Home() {
     useNearbyAnimals(fetchAllowed);
 
   return (
-    <div className="max-w-screen-xl mx-auto px-4 flex flex-col gap-8 overflow-x-hidden">
+    <div className="max-w-screen-xl mx-auto flex flex-col gap-8 overflow-x-hidden">
       <HeroSection />
       <DonationSection />
       <CardSection

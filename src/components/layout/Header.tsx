@@ -58,7 +58,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full">
       <div className="bg-white w-full">
-        <div className="max-w-[1200px] mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-[1200px] mx-auto py-4 flex items-center justify-between">
           {/* Left Section: 로고 + 네비게이션 */}
           <div className="flex items-center space-x-8">
             <Link
@@ -117,15 +117,6 @@ export default function Header() {
                 >
                   로그아웃
                 </ButtonComponent>
-
-                {/* <ButtonComponent
-                  onClick={handleForceReset}
-                  bgcolor="white"
-                  text="black"
-                  className="border-[1px] border-gray-300 hover:bg-white font-medium"
-                >
-                  강제 초기화
-                </ButtonComponent> */}
               </>
             ) : (
               <ButtonComponent

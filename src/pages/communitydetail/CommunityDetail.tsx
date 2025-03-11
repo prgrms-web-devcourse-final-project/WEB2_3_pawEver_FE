@@ -160,7 +160,7 @@ export default function CommunityDetail() {
           <img
             src={post.profileImage}
             alt="작성자 프로필"
-            className="w-6 h-6 rounded-full"
+            className="w-6 h-6 rounded-full object-cover"
           />
           <span>{post.author}</span>
           <span>{formatDate(post.createdAt)}</span>
