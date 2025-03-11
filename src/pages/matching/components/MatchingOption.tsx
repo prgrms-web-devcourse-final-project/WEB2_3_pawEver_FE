@@ -1,5 +1,3 @@
-import check from "../../../assets/icons/check.svg";
-
 interface OptionProps {
   option: string;
   isSelected: boolean;
@@ -30,13 +28,6 @@ export default function MatchingOption({
     >
       <div className="flex items-center justify-center">
         <p className="font-medium">{option}</p>
-        {isSelected && (
-          <img
-            src={check}
-            alt="선택"
-            className="absolute top-4 right-4 hidden md:block"
-          />
-        )}
       </div>
     </button>
   );
