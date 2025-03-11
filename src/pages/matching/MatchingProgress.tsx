@@ -1,11 +1,29 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
+import axios from "axios";
+import { useAuthStore } from "../../store/authStore";
 
 import back from "../../assets/icons/back.svg";
 import Button from "../../common/ButtonComponent";
 import MatchingOption from "./components/MatchingOption";
-import { matchingQuestions } from "./components/MatchingList";
+import { recommendDog, recommendCat } from "../../api/matchingAnimal";
+import { useMatchingStore } from "../../store/matchingStore";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+interface Answer {
+  id: number;
+  optionId: number;
+  optionText: string;
+  questionId: number;
+}
+
+interface Question {
+  questionId: number;
+  questionText: string;
+  answers: Answer[];
+}
 
 interface ProgressProps {
   progress: number;
@@ -24,77 +42,128 @@ const ProgressBar = ({ progress }: ProgressProps) => {
 
 export default function MatchingProgress() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
-  // toast 관련 상태
-  const [toastCount, setToastCount] = useState(0);
-  const [toastActive, setToastActive] = useState(false);
+  const location = useLocation();
+  const [step, setStep] = useState<number>(0);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [question, setQuestion] = useState<Question | null>(null);
+  const [toastActive, setToastActive] = useState<boolean>(false);
+  const [toastCount, setToastCount] = useState<number>(0);
+  const { userInfo } = useAuthStore();
 
-  const progress = (step / 3) * 100;
-  const questionsForStep = matchingQuestions.slice(step * 5, step * 5 + 5);
+  const query = new URLSearchParams(location.search);
+  const animalType = query.get("type") || "dogs";
 
-  const handleNext = () => {
-    // 현재 스텝의 5개 질문 중 하나라도 선택되었는지 확인
-    const answered = questionsForStep.some((_, index) => {
-      const globalIndex = step * 5 + index;
-      return !!selectedOptions[globalIndex];
-    });
-    if (!answered) {
-      // toast가 이미 활성화된 상태라면 바로 리턴 (추가 toast 발생 X)
-      if (toastActive) return;
-      // toast를 최대 2회까지만 보여줌 (이후 toast가 모두 사라질 때까지 버튼 동작 차단)
-      if (toastCount < 2) {
-        setToastCount((prev) => prev + 1);
-        setToastActive(true);
-        toast("질문지를 선택해주세요", {
-          duration: 2000,
-          style: {
-            background: "#09ACFB",
-            color: "#fff",
-            borderRadius: "8px",
-            padding: "16px",
-            fontSize: "16px",
-          },
-          icon: "⚠️",
-        });
-        // toast 표시 기간이 지난 후 상태 초기화
-        setTimeout(() => {
-          setToastActive(false);
-          setToastCount(0);
-        }, 2000);
+  const [answersHistory, setAnswersHistory] = useState<
+    { questionId: number; optionId: number }[]
+  >([]);
+
+  const fetchQuestion = async () => {
+    try {
+      const questionId = step + 1;
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (userInfo?.accessToken) {
+        headers.Authorization = `Bearer ${userInfo.accessToken}`;
       }
+
+      const endpoint =
+        animalType === "dogs"
+          ? `${API_BASE_URL}/api/recommend-animals/dogs/questions/${questionId}`
+          : `${API_BASE_URL}/api/recommend-animals/cats/questions/${questionId}`;
+
+      const response = await axios.get<{
+        data: { questionText: string; answers: Answer[] };
+      }>(endpoint, {
+        headers,
+      });
+
+      setQuestion({
+        questionId: questionId,
+        questionText: response.data.data.questionText,
+        answers: response.data.data.answers,
+      });
+    } catch (error) {
+      console.error("질문 데이터를 불러오는 중 오류 발생:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchQuestion();
+  }, [step, animalType]);
+
+  const totalSteps = 10;
+  const progress = (step / totalSteps) * 100;
+
+  const { setRecommendResult, setAnimalType } = useMatchingStore();
+
+  const handleNext = async () => {
+    if (selectedOption === null) {
+      if (toastActive || toastCount >= 2) return;
+      setToastCount((prev) => prev + 1);
+      setToastActive(true);
+      toast("질문을 선택해주세요", {
+        duration: 2000,
+        style: { background: "#09ACFB", color: "#fff" },
+        icon: "⚠️",
+      });
+      setTimeout(() => setToastActive(false), 2000);
       return;
     }
 
-    if (step < 3) {
-      setStep(step + 1);
+    setAnswersHistory((prev) => [
+      ...prev,
+      { questionId: question?.questionId ?? 0, optionId: selectedOption },
+    ]);
+
+    if (step === totalSteps - 1) {
+      let response;
+
+      if (animalType === "dogs") {
+        const dogResponses = generateDogResponses();
+        response = await recommendDog(API_BASE_URL, dogResponses);
+      } else {
+        response = await recommendCat(API_BASE_URL, answersHistory);
+      }
+
+      if ("error" in response) {
+        toast("추천 동물을 불러오는 중 오류가 발생했습니다.", {
+          duration: 2000,
+          style: { background: "#FF5A5F", color: "#fff" },
+          icon: "❌",
+        });
+      } else {
+        const responseData = response.data;
+        const resultData = Array.isArray(responseData)
+          ? responseData[0]
+          : responseData;
+
+        setAnimalType(animalType);
+        setRecommendResult(resultData);
+
+        toast("추천 동물을 성공적으로 불러왔습니다.", {
+          duration: 2000,
+          style: { background: "#09ACFB", color: "#fff" },
+          icon: "✔️",
+        });
+        navigate("/Matching/complete");
+      }
     } else {
-      navigate("/Matching/complete");
+      setStep(step + 1);
+      setSelectedOption(null);
     }
   };
 
   const handlePrev = () => {
-    if (step > 0) {
-      setStep(step - 1);
-    }
+    if (step > 0) setStep(step - 1);
   };
 
-  const handleOptionSelect = (questionIndex: number, newOption: string) => {
-    const globalIndex = step * 5 + questionIndex;
-    setSelectedOptions((prev) => {
-      const newArr = [...prev];
-      const currentlySelected = newArr[globalIndex];
-      if (currentlySelected === newOption) {
-        newArr[globalIndex] = "";
-      } else {
-        // 현재 스텝 내 모든 질문 초기화 후 새로운 옵션 선택
-        for (let i = step * 5; i < step * 5 + 5; i++) {
-          newArr[i] = "";
-        }
-        newArr[globalIndex] = newOption;
-      }
-      return newArr;
-    });
+  const generateDogResponses = () => {
+    return answersHistory.map((answer) => ({
+      questionId: answer.questionId,
+      optionId: answer.optionId,
+    }));
   };
 
   return (
@@ -104,50 +173,40 @@ export default function MatchingProgress() {
           <ProgressBar progress={progress} />
         </div>
       </div>
-
       <div className="flex justify-center">
-        <div className="flex flex-col w-full max-w-[488px] min-h-[630px] md:min-h-[660px] border border-t-1 rounded-xl shadow-xl mx-4 py-6 md:py-8 mt-8 bg-white">
+        <div className="flex flex-col w-full max-w-[488px] min-h-[630px] border rounded-xl shadow-xl mx-4 py-6 mt-8 bg-white">
           <button
-            type="button"
-            className="inline-flex w-max gap-1 ml-4 items-center"
             onClick={step === 0 ? () => navigate("/Matching") : handlePrev}
+            className="inline-flex w-max gap-1 ml-4 items-center"
           >
             <img src={back} alt="이전" />
             <span className="text-[#91989E]">
               {step === 0 ? "돌아가기" : "이전"}
             </span>
           </button>
-          <div className="mx-6 md:mx-8">
-            <div>
-              <h2 className="font-bold text-[20px] mt-6 mb-2">
-                {`현재 단계: ${step + 1}/4`}
-              </h2>
-              <p className="text-[15px] text-[#91989E] mb-10 md:mb-12">
-                {`질문 ${step * 5 + 1} ~ ${step * 5 + questionsForStep.length}`}
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              {questionsForStep.map(({ option }, index) => {
-                const globalIndex = step * 5 + index;
-                const isSelected = selectedOptions[globalIndex] === option;
-
-                return (
-                  <MatchingOption
-                    key={globalIndex}
-                    option={option}
-                    isSelected={isSelected}
-                    onClick={() => handleOptionSelect(index, option)}
-                  />
-                );
-              })}
-            </div>
-
-            <Button
-              className="mt-10 w-full max-w-[424px] h-12"
-              onClick={handleNext}
-            >
-              {step < 3 ? "다음" : "완료"}
+          <div className="mx-6">
+            {question && (
+              <>
+                <h2 className="font-bold text-[20px] mt-6 mb-2">
+                  현재 단계: {step + 1}/{totalSteps}
+                </h2>
+                <p className="text-[15px] text-[#91989E] mb-10">
+                  {question.questionText}
+                </p>
+                <div className="space-y-6">
+                  {question.answers.map((answer) => (
+                    <MatchingOption
+                      key={answer.optionId}
+                      option={answer.optionText}
+                      isSelected={selectedOption === answer.optionId}
+                      onClick={() => setSelectedOption(answer.optionId)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+            <Button className="mt-10 w-full h-12" onClick={handleNext}>
+              {step < totalSteps - 1 ? "다음" : "완료"}
             </Button>
           </div>
         </div>
