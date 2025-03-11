@@ -39,7 +39,7 @@ export function useToggleLike() {
     },
 
     //API 실패 시 롤백
-    onError: (_error, animalId, context) => {
+    onError: (_error, _animalId, context) => {
       if (context) {
         useAnimalLikeStore.setState({
           likedAnimals: context.likedAnimals,

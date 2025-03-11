@@ -8,7 +8,7 @@ import Button from "../../../common/ButtonComponent";
 
 export default function DonationSuccess() {
   const location = useLocation();
-  const { confirmDonation, isLoading, error } = useDonationStore();
+  const { confirmDonation, isLoading } = useDonationStore();
   const [confirmStatus, setConfirmStatus] = useState<
     "pending" | "success" | "error"
   >("pending");

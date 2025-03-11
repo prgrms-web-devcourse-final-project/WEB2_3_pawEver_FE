@@ -20,9 +20,6 @@ export default function AnimalDetail() {
   // Zustand 스토어에서 좋아요 상태 및 토글 함수를 사용
   const { likedAnimals, toggleAnimalLike } = useAnimalLikeStore();
 
-  // id가 반드시 숫자임을 보장
-  const detailId: number = id ? Number(id) : 0;
-
   useEffect(() => {
     if (!id) return;
     getAnimalDetail(Number(id))
@@ -60,11 +57,6 @@ export default function AnimalDetail() {
       longitude,
     },
   } = detailData;
-
-  // 성별 텍스트
-  let sexText = "미상";
-  if (name.includes("남아")) sexText = "남아";
-  else if (name.includes("여아")) sexText = "여아";
 
   // 중성화 상태 텍스트
   const neuterText =

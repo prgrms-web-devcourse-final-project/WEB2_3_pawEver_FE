@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import logo from "../../assets/icons/logo.svg";
 import Input from "../../common/InputComponent";
 import Button from "../../common/ButtonComponent";
@@ -14,9 +14,6 @@ export default function Donation() {
     error,
     isLoading,
   } = useDonationStore();
-
-  // 로컬 에러 상태 (폼 검증)
-  const [localError, setLocalError] = useState<string | null>(null);
 
   // 결제 수단 선택
   const handleSelect = (value: "card" | "cash") => {
@@ -51,7 +48,6 @@ export default function Donation() {
       return false;
     }
 
-    setLocalError(null);
     return true;
   };
 

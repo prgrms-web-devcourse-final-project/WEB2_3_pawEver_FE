@@ -66,8 +66,6 @@ async function fetchMultiPageProtectedAnimals(
   pageCount: number,
   params: Omit<FetchAnimalsParams, "page"> = {}
 ): Promise<ProtectedAnimalsResult> {
-  const baseURL = import.meta.env.VITE_API_BASE_URL;
-
   // page 매개변수를 제외한 나머지 매개변수 설정
   const queryParams = { ...params, size: params.size || 5 };
 

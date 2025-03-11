@@ -27,7 +27,7 @@ interface AnimalLikeStore {
 
 export const useAnimalLikeStore = create<AnimalLikeStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       likedAnimals: [],
       likedAnimalDetails: [],
 

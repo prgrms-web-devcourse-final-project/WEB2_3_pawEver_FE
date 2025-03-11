@@ -11,7 +11,6 @@ export function useScrollRestoration() {
     if ("scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
-    // Cleanup: 컴포넌트 언마운트 시 기본값 복원
     return () => {
       if ("scrollRestoration" in window.history) {
         window.history.scrollRestoration = "auto";
@@ -21,17 +20,16 @@ export function useScrollRestoration() {
 
   // 스크롤 위치 저장
   useEffect(() => {
+    // handleScroll 함수가 실제로 사용되도록 함
     const handleScroll = () => {
       sessionStorage.setItem(pathKey, window.scrollY.toString());
     };
 
-    // 디바운싱 적용
     let timeoutId: NodeJS.Timeout;
     const debouncedHandleScroll = () => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        sessionStorage.setItem(pathKey, window.scrollY.toString());
-      }, 100);
+      // 기존 인라인 코드 대신 handleScroll 호출
+      timeoutId = setTimeout(handleScroll, 100);
     };
 
     window.addEventListener("scroll", debouncedHandleScroll);
@@ -46,7 +44,7 @@ export function useScrollRestoration() {
     const restoreScroll = () => {
       if (navigationType === "POP") {
         const storedY = Number(sessionStorage.getItem(pathKey)) || 0;
-        console.log(`Restoring scroll to ${storedY} for ${pathKey}`); // 디버깅
+        console.log(`Restoring scroll to ${storedY} for ${pathKey}`);
         window.scrollTo({
           top: storedY,
           behavior: "auto",
@@ -56,7 +54,8 @@ export function useScrollRestoration() {
       }
     };
 
-    // 무한 스크롤 데이터 로드 대기 (필요 시 조정)
+    // timer를 변수에 할당 후, 복원 함수 호출
     const timer = setTimeout(restoreScroll, 0);
+    return () => clearTimeout(timer);
   }, [pathKey, navigationType]);
 }
