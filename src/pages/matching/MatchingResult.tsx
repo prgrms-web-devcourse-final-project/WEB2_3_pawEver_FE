@@ -4,8 +4,8 @@ import restart from "../../assets/icons/return.svg";
 import share from "../../assets/images/matchingShare.svg";
 import urlShare from "../../assets/icons/urlShare.svg";
 import kakaotalkShare from "../../assets/icons/kakaotalkShare.svg";
-import like from "../../assets/icons/likewhite.svg"; // like 아이콘 import 추가
-import { NearbyAnimals } from "./components/MatchingCard";
+import like from "../../assets/icons/likewhite.svg";
+import { EnhancedNearbyAnimals as NearbyAnimals } from "./components/MatchingCard";
 import Button from "../../common/ButtonComponent";
 import { useMatchingStore } from "../../store/matchingStore";
 import { useAuthStore } from "../../store/authStore";
@@ -42,7 +42,6 @@ export default function MatchingResult() {
     } else {
       setLoading(false);
 
-      // 추천 품종 기반으로 주변 동물 정보 가져오기
       fetchNearbyAnimals();
     }
   }, [recommendResult, navigate]);
@@ -53,77 +52,41 @@ export default function MatchingResult() {
     setNearbyLoading(true);
 
     try {
-      // 사용자 인증 토큰 가져오기
       const token = userInfo?.accessToken || null;
 
-      // 추천 품종 정보를 포함한 요청 데이터 준비
       const requestData = {
         recommendedBreed: recommendResult.breedKor,
       };
 
-      console.log("요청 데이터:", requestData);
-      console.log("사용자 토큰:", token ? "토큰 있음" : "토큰 없음");
-
       const endpoint = `${
         import.meta.env.VITE_API_BASE_URL
       }/api/recommend-animals/nearby`;
-
-      console.log("요청 엔드포인트:", endpoint);
 
       const headers = {
         "Content-Type": "application/json",
         Authorization: token ? `Bearer ${token}` : "",
       };
 
-      console.log("요청 헤더:", headers);
-
-      // GET 요청에서 POST 요청으로 변경
       const response = await axios.post(endpoint, requestData, {
         headers,
       });
 
-      console.log("API 요청 전체 설정:", {
-        url: endpoint,
-        headers,
-        data: requestData,
-      });
-
-      console.log("API 응답 상태:", response.status);
-      console.log("API 응답 헤더:", response.headers);
-      console.log("API 응답 데이터:", response.data);
-
       if (response.data.isSuccess && response.data.data) {
-        console.log("설정된 동물 데이터:", response.data.data);
         setNearbyAnimals(response.data.data);
-      } else {
-        console.log(
-          "API 응답은 성공했지만 데이터가 유효하지 않음:",
-          response.data
-        );
       }
     } catch (err) {
       console.error("주변 동물 정보 가져오기 실패:", err);
-
-      // axios 에러에서 더 자세한 정보 추출
-      if (axios.isAxiosError(err)) {
-        console.error("API 요청 실패 상세 정보:", {
-          status: err.response?.status,
-          statusText: err.response?.statusText,
-          responseData: err.response?.data,
-          requestConfig: err.config,
-        });
-      }
     } finally {
       setNearbyLoading(false);
     }
   };
+
   if (loading || !recommendResult) {
     return (
       <div className="flex justify-center py-10">결과를 불러오는 중...</div>
     );
   }
 
-  // 주의사항 항목 분리
   const precautionItems = recommendResult.precaution
     ? recommendResult.precaution.split("\n")
     : ["정보가 없습니다."];
@@ -132,7 +95,6 @@ export default function MatchingResult() {
     navigate(`/Matching?type=${animalType}`);
   };
 
-  // 공유 기능 처리
   const handleUrlShare = () => {
     navigator.clipboard
       .writeText(window.location.href)
@@ -163,7 +125,6 @@ export default function MatchingResult() {
 
   const animalTypeText = animalType === "dogs" ? "강아지" : "고양이";
 
-  // 주변 동물 카드 렌더링
   const renderNearbyAnimals = () => {
     if (nearbyLoading) {
       return Array(4)
@@ -191,7 +152,6 @@ export default function MatchingResult() {
         ));
     }
 
-    // 실제 데이터가 있는 경우, 최대 4개까지 표시
     return nearbyAnimals
       .slice(0, 4)
       .map((animal, index) => <MatchingCardItem key={index} animal={animal} />);
@@ -244,7 +204,7 @@ export default function MatchingResult() {
           내 근처의 {recommendResult.breedKor}
         </p>
 
-        <div className="flex flex-wrap gap-3 justify-start w-full">
+        <div className="flex flex-wrap gap-2 justify-start w-full">
           {nearbyAnimals.length > 0 ? <NearbyAnimals /> : renderNearbyAnimals()}
         </div>
 
@@ -278,7 +238,7 @@ interface MatchingCardItemProps {
   animal: NearbyAnimalItem;
 }
 
-// 개별 동물 카드 컴포넌트 (MatchingCard 컴포넌트를 수정하기 어려운 경우 사용)
+// 개별 동물 카드 컴포넌트
 function MatchingCardItem({ animal }: MatchingCardItemProps) {
   // 성별 표시를 ♂/♀ 기호로 변환하는 함수
   const getSexSymbol = (sex: string): string => {

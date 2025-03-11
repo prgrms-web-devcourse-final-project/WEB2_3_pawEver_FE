@@ -53,6 +53,7 @@ export default function MatchingProgress() {
   const query = new URLSearchParams(location.search);
   const animalType = query.get("type") || "dogs";
 
+  // 모든 질문에 대한 사용자 응답을 저장
   const [answersHistory, setAnswersHistory] = useState<
     { questionId: number; optionId: number }[]
   >([]);
@@ -84,6 +85,15 @@ export default function MatchingProgress() {
         questionText: response.data.data.questionText,
         answers: response.data.data.answers,
       });
+
+      const previousAnswer = answersHistory.find(
+        (answer) => answer.questionId === questionId
+      );
+      if (previousAnswer) {
+        setSelectedOption(previousAnswer.optionId);
+      } else {
+        setSelectedOption(null);
+      }
     } catch (error) {
       console.error("질문 데이터를 불러오는 중 오류 발생:", error);
     }
@@ -112,10 +122,30 @@ export default function MatchingProgress() {
       return;
     }
 
-    setAnswersHistory((prev) => [
-      ...prev,
-      { questionId: question?.questionId ?? 0, optionId: selectedOption },
-    ]);
+    // 기존 답변 업데이트 또는 새 답변 추가
+    const currentQuestionId = question?.questionId ?? 0;
+    setAnswersHistory((prev) => {
+      // 이미 해당 질문에 대한 응답이 있는지 확인
+      const existingAnswerIndex = prev.findIndex(
+        (answer) => answer.questionId === currentQuestionId
+      );
+
+      if (existingAnswerIndex !== -1) {
+        // 기존 응답 업데이트
+        const updatedAnswers = [...prev];
+        updatedAnswers[existingAnswerIndex] = {
+          questionId: currentQuestionId,
+          optionId: selectedOption,
+        };
+        return updatedAnswers;
+      } else {
+        // 새 응답 추가
+        return [
+          ...prev,
+          { questionId: currentQuestionId, optionId: selectedOption },
+        ];
+      }
+    });
 
     if (step === totalSteps - 1) {
       let response;
@@ -151,7 +181,6 @@ export default function MatchingProgress() {
       }
     } else {
       setStep(step + 1);
-      setSelectedOption(null);
     }
   };
 

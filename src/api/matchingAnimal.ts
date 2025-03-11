@@ -1,7 +1,6 @@
 import axios from "axios";
-import { useAuthStore } from "../store/authStore"; // Zustand store import
+import { useAuthStore } from "../store/authStore";
 
-// 추천 개(Dog) 응답 타입 정의
 type RecommendResponse = {
   data: any;
   responses: {
@@ -32,18 +31,14 @@ export async function recommendDog(
     const token: string | null = getUserToken();
     const endpoint = `${API_BASE_URL}/api/recommend-animals/dog`;
 
-    // responses 객체를 answersHistory 배열을 기반으로 동적으로 생성
     const responses: Record<number, number> = {};
     answersHistory.forEach((answer) => {
       responses[answer.questionId] = answer.optionId;
     });
 
-    // 보내는 데이터 형식
     const requestData = {
       responses,
     };
-
-    console.log("Request Data for Dog API:", requestData);
 
     const response = await axios.post<RecommendResponse>(
       endpoint,
@@ -56,14 +51,9 @@ export async function recommendDog(
       }
     );
 
-    console.log("API Response:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error(
-      "API Request Failed:",
-      error.response?.status,
-      error.response?.data
-    );
+    console.error("추천 개 API 요청 실패");
     return {
       error: `Request failed with status code ${error.response?.status}`,
       details: error.response?.data,
@@ -80,18 +70,14 @@ export async function recommendCat(
     const token: string | null = getUserToken();
     const endpoint = `${API_BASE_URL}/api/recommend-animals/cat`;
 
-    // responses 객체를 answersHistory 배열을 기반으로 동적으로 생성
     const responses: Record<number, number> = {};
     answersHistory.forEach((answer) => {
       responses[answer.questionId] = answer.optionId;
     });
 
-    // 보내는 데이터 형식
     const requestData = {
       responses,
     };
-
-    console.log("Request Data for Cat API:", requestData);
 
     const response = await axios.post<RecommendResponse>(
       endpoint,
@@ -104,14 +90,9 @@ export async function recommendCat(
       }
     );
 
-    console.log("API Response:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error(
-      "API Request Failed:",
-      error.response?.status,
-      error.response?.data
-    );
+    console.error("추천 고양이 API 요청 실패");
     return {
       error: `Request failed with status code ${error.response?.status}`,
       details: error.response?.data,
@@ -142,14 +123,9 @@ export async function getDogQuestions(
       },
     });
 
-    console.log("모든 강아지 질문 API 응답:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error(
-      "API 요청 실패:",
-      error.response?.status,
-      error.response?.data
-    );
+    console.error("강아지 질문 API 요청 실패");
     return {
       error: `상태 코드 ${error.response?.status}로 요청 실패`,
       details: error.response?.data,
@@ -172,14 +148,9 @@ export async function getCatQuestions(
       },
     });
 
-    console.log("모든 고양이 질문 API 응답:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error(
-      "API 요청 실패:",
-      error.response?.status,
-      error.response?.data
-    );
+    console.error("고양이 질문 API 요청 실패");
     return {
       error: `상태 코드 ${error.response?.status}로 요청 실패`,
       details: error.response?.data,
@@ -217,14 +188,9 @@ export async function getNearbyAnimals(
       },
     });
 
-    console.log("주변 추천 동물 API 응답:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error(
-      "API 요청 실패:",
-      error.response?.status,
-      error.response?.data
-    );
+    console.error("주변 추천 동물 API 요청 실패");
     return {
       error: `상태 코드 ${error.response?.status}로 요청 실패`,
       details: error.response?.data,
