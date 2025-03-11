@@ -66,7 +66,6 @@ function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
         (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ latitude, longitude });
-          console.log("사용자 위치", latitude, longitude);
         },
         (error) => {
           console.error("위치 정보를 가져오는데 실패했습니다:", error);
