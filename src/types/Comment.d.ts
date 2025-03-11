@@ -1,6 +1,7 @@
 export interface CommentType {
   replyId: number;
   userId: number;
+  userUuid: string;
   username: string;
   profileImageUrl: string;
   postId: number;

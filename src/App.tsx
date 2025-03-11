@@ -7,7 +7,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter } from "react-router-dom";
 import Router from "./Router";
-import SkeletonCard from "./common/SkeletonCard";
+import LoadingSpinner from "./common/LoadingSpinner";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -111,7 +111,7 @@ export default function App() {
       >
         {!isRestored ? (
           <div className="max-w-[1200px] mx-auto p-4">
-            <SkeletonCard />
+            <LoadingSpinner />
           </div>
         ) : (
           <Router />

@@ -190,10 +190,10 @@
 import { useState } from "react";
 import { useAuthStore } from "../../store/authStore";
 import HeroSection from "./components/HeroSection";
-import FilterSection from "./components/FilterSection";
 import CardSection from "./components/CardSection";
 import useNearbyAnimals from "../../hooks/useNearbyAnimals";
 import useProtectedAnimals from "../../hooks/useProtectedAnimals";
+import DonationSection from "./components/DonationSection";
 
 export default function Home() {
   const [fetchAllowed, setFetchAllowed] = useState(false);
@@ -213,8 +213,7 @@ export default function Home() {
   return (
     <div className="max-w-screen-xl mx-auto px-4 flex flex-col gap-8 overflow-x-hidden">
       <HeroSection />
-      <FilterSection />
-      {/* 보호중인 동물 섹션 */}
+      <DonationSection />
       <CardSection
         title="보호중인 동물"
         cards={20}
@@ -222,7 +221,6 @@ export default function Home() {
         isProtectedLoading={isProtectedLoading}
         isProtectedError={isProtectedError}
       />
-      {/* 근처 동물 섹션 */}
       <CardSection
         title={`${userName}님 근처의 동물`}
         cards={10}

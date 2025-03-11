@@ -3,6 +3,8 @@ import { Editor } from "@toast-ui/react-editor";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import { createPost, getPost, updatePost } from "../../api/fetchPost";
 import { useNavigate, useParams } from "react-router-dom";
+import cancel from "../../assets/icons/cancel.svg";
+import toast from "react-hot-toast";
 
 export default function EditCommunity() {
   const navigate = useNavigate();
@@ -19,21 +21,16 @@ export default function EditCommunity() {
     });
   };
 
-  // 썸네일 파일명
   function getFileNameFromKey(objectKey: string) {
-    // UUID 형식의 정규 표현식
     const uuidPattern =
       /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(.*)/i;
 
-    // UUID가 문자열에 포함되어 있는지 확인
     const match = objectKey.match(uuidPattern);
     if (match) {
-      // UUID 이후의 파일명 반환
-      return match[2]; // 두 번째 캡처 그룹 (파일명) 반환
+      return match[2];
     }
 
-    // UUID가 없을 경우 전체 문자열을 반환
-    return objectKey; // 원래 파일명 전체 반환
+    return objectKey;
   }
 
   const getPostData = async (postId: string) => {
@@ -42,7 +39,6 @@ export default function EditCommunity() {
     try {
       const data = await getPost(postId);
 
-      console.log(data);
       const { content, images } = data;
       const updatedContent = replacePlaceholdersWithUrls(content, images);
 
@@ -79,7 +75,6 @@ export default function EditCommunity() {
     let imageIndex = 0;
     const images: string[] = [];
 
-    // Base64로 인코딩된 이미지 찾기
     doc.querySelectorAll("img").forEach((img) => {
       const src = img.src;
       if (src.startsWith("data:image")) {
@@ -101,10 +96,10 @@ export default function EditCommunity() {
 
     if (!mimeMatch) {
       console.error("Invalid Base64 string");
-      return null; // MIME 타입이 없으면 null 반환
+      return null;
     }
 
-    const mime = mimeMatch[1]; // MIME 타입 추출
+    const mime = mimeMatch[1];
     const bstr = atob(arr[1]);
     let n = bstr.length;
     const u8arr = new Uint8Array(n);
@@ -116,16 +111,14 @@ export default function EditCommunity() {
     return new File([u8arr], fileName, { type: mime });
   };
 
-  // 이미지 파일 객체로 변환
   const convertImagesToFiles = (images: string[]): File[] => {
     const files = images.map((img, index) => {
       return base64ToFile(img, `img${index}.jpg`);
     });
 
-    return files.filter((file): file is File => file !== null); // null 제거
+    return files.filter((file): file is File => file !== null);
   };
 
-  // 썸네일
   const handleThumbnailChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -157,7 +150,6 @@ export default function EditCommunity() {
     if (thumbnail) {
       formData.append("thumbnail", thumbnail);
     }
-    // request (JSON 데이터를 Blob으로 변환 후 추가)
     const request = new Blob([JSON.stringify({ title, content })], {
       type: "application/json",
     });
@@ -171,14 +163,40 @@ export default function EditCommunity() {
         if (!postId) return;
         await updatePost(postId, formData);
         navigate(`/community/${postId}`);
+        toast.success("게시글이 수정되었습니다.", {
+          duration: 3000,
+          position: "top-center",
+          style: {
+            background: "#09ACFB",
+            color: "#FFFFFF",
+            border: "1px solid #0187EE",
+          },
+
+          iconTheme: {
+            primary: "#FFFFFF",
+            secondary: "#09ACFB",
+          },
+        });
       } else {
-        const result = await createPost(formData);
+        await createPost(formData);
         navigate("/community");
-        console.log("게시글 등록 성공:", result);
+        toast.success("게시글이 작성되었습니다.", {
+          duration: 3000,
+          position: "top-center",
+          style: {
+            background: "#09ACFB",
+            color: "#FFFFFF",
+            border: "1px solid #0187EE",
+          },
+
+          iconTheme: {
+            primary: "#FFFFFF",
+            secondary: "#09ACFB",
+          },
+        });
       }
-    } catch (error) {
-      console.error("게시글 등록 실패:", error);
-      throw error;
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -205,14 +223,14 @@ export default function EditCommunity() {
             onChange={handleThumbnailChange}
             className="hidden"
           />
-          <div className="flex-grow">
+          <div className="flex-grow flex items-center">
             <span className="px-2">{fileName || "선택 안 함"}</span>
             {fileName && (
               <button
                 onClick={handleRemoveThumbnail}
                 className="text-gray-500 font-semibold "
               >
-                &#x2715;
+                <img src={cancel} alt="썸네일 삭제" className="w-4 h-4" />
               </button>
             )}
           </div>
