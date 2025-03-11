@@ -2,9 +2,8 @@ import Input from "../../common/InputComponent";
 import Dropdown from "../../common/DropDownComponent";
 import Button from "../../common/ButtonComponent";
 import KakaoMap from "../../components/KakaoMap";
-import Planner from "../../assets/icons/Planner.svg";
-import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 import { useEffect, useState } from "react";
 
@@ -16,9 +15,7 @@ declare global {
 }
 
 export default function EditReservation() {
-  const handleSubmit = () => {
-    console.log("예약 정보 제출");
-  };
+  const handleSubmit = () => {};
 
   return <EditReservationPresenter onSubmit={handleSubmit} />;
 }
@@ -47,10 +44,8 @@ function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
   const handleDateChange = (date: Date | Date[]) => {
     if (Array.isArray(date)) {
       setReservationDate(date[0]); // 첫 번째 날짜만 선택
-      console.log("선택된 날짜:", date[0].toISOString().split("T")[0]);
     } else {
       setReservationDate(date);
-      console.log("선택된 날짜:", date.toISOString().split("T")[0]);
     }
   };
 
@@ -66,7 +61,6 @@ function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
         (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ latitude, longitude });
-          console.log("사용자 위치", latitude, longitude);
         },
         (error) => {
           console.error("위치 정보를 가져오는데 실패했습니다:", error);
@@ -185,13 +179,10 @@ function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
     return Array.from(seen.values());
   };
 
-  // Dropdown에서 보호소 선택했을 때
   const handleShelterSelect = (value: string) => {
     setSelectedShelter(value);
-    console.log("선택된 보호소:", value);
   };
 
-  // 선택된 보호소 데이터(없으면 사용자 위치)
   const selectedShelterObject =
     shelterOptions.find((oneShelter) => oneShelter.name === selectedShelter) ||
     null;
@@ -222,7 +213,6 @@ function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
             </p>
             <Dropdown
               options={["방문 예약", "입양 상담", "봉사 활동"]}
-              onSelect={(value) => console.log(value)}
               width={400}
               className="h-10"
             />
@@ -244,108 +234,7 @@ function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
         </div>
 
         {/* 오른쪽 컬럼 */}
-        <div className="w-full lg:w-1/2 space-y-6">
-          <div>
-            <p className="text-sm text-gray-500 mb-1">
-              날짜 예약 <span className="text-red-500">*</span>
-            </p>
-            <Input
-              placeholder="YYYY-MM-DD"
-              className="h-10 w-full pr-10"
-              value={
-                reservationDate
-                  ? reservationDate.toISOString().split("T")[0]
-                  : ""
-              }
-            />
-            <Calendar
-              onChange={handleDateChange}
-              value={reservationDate}
-              className="mt-2 border border-gray-300 rounded-md shadow-md"
-              tileClassName={({ date }) =>
-                reservationDate &&
-                date.toDateString() === reservationDate.toDateString()
-                  ? "bg-main text-white rounded-lg"
-                  : ""
-              }
-            />
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              bgcolor="white"
-              text="black"
-              className="border-[1px] font-medium"
-            >
-              09:00
-            </Button>
-            <Button
-              bgcolor="white"
-              text="black"
-              className="border-[1px] font-medium"
-            >
-              10:00
-            </Button>
-            <Button
-              bgcolor="white"
-              text="black"
-              className="border-[1px] font-medium"
-            >
-              11:00
-            </Button>
-            <Button
-              bgcolor="white"
-              text="black"
-              className="border-[1px] font-medium"
-            >
-              12:00
-            </Button>
-            <Button
-              bgcolor="white"
-              text="black"
-              className="border-[1px] font-medium"
-            >
-              13:00
-            </Button>
-            <Button
-              bgcolor="white"
-              text="black"
-              className="border-[1px] font-medium"
-            >
-              14:00
-            </Button>
-            <Button
-              bgcolor="white"
-              text="black"
-              className="border-[1px] font-medium"
-            >
-              15:00
-            </Button>
-            <Button
-              bgcolor="white"
-              text="black"
-              className="border-[1px] font-medium"
-            >
-              16:00
-            </Button>
-            <Button
-              bgcolor="white"
-              text="black"
-              className="border-[1px] font-medium"
-            >
-              17:00
-            </Button>
-            <Button
-              bgcolor="white"
-              text="black"
-              className="border-[1px] font-medium"
-            >
-              18:00
-            </Button>
-          </div>
-
-          {/* 이부분에 캘린더 만들어줘 */}
-
+        <div className="w-full lg:w-1/2 space-y-6 ">
           <div>
             <p className="text-sm text-gray-500 mb-1">
               보호소 선택하기 <span className="text-red-500">*</span>
@@ -360,27 +249,68 @@ function EditReservationPresenter({ onSubmit }: EditReservationPresenterProps) {
               <KakaoMap
                 width="100%"
                 height="100%"
-                centerLat={37.452327}
-                centerLng={126.653208}
+                centerLat={37.533472}
+                centerLng={126.990261}
                 markers={[
                   {
-                    name: "한국동물보호소협회",
-                    latitude: 37.5422976,
-                    longitude: 127.0939648,
+                    name: "아이조아 요양보육센터 서울용산본점",
+                    latitude: 37.533472,
+                    longitude: 126.990261,
                     phone: "032-XXX-XXXX",
                     distance: 1500,
                   },
                 ]}
                 selectedShelter={{
-                  name: "한국동물보호소협회",
-                  latitude: 37.5422976,
-                  longitude: 127.0939648,
+                  name: "아이조아 요양보육센터 서울용산본점",
+                  latitude: 37.533472,
+                  longitude: 126.990261,
                   phone: "032-XXX-XXXX",
                   distance: 1.5,
                 }}
               />
             </div>
           </div>
+
+          {selectedShelter && (
+            <>
+              <div>
+                <p className="text-sm text-gray-500 mb-1">
+                  날짜 예약 <span className="text-red-500">*</span>
+                </p>
+                <DatePicker
+                  selected={reservationDate}
+                  onChange={handleDateChange}
+                  dateFormat="yyyy-MM-dd"
+                  className="h-10 w-[400px] border px-2"
+                  placeholderText="YYYY-MM-DD"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2 w-full">
+                {[
+                  "09:00",
+                  "10:00",
+                  "11:00",
+                  "12:00",
+                  "13:00",
+                  "14:00",
+                  "15:00",
+                  "16:00",
+                  "17:00",
+                  "18:00",
+                ].map((time) => (
+                  <Button
+                    key={time}
+                    bgcolor="bg-main"
+                    text="text-white"
+                    className="border-[1px] font-medium w-[90px]" // 버튼 크기 조절
+                  >
+                    {time}
+                  </Button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
