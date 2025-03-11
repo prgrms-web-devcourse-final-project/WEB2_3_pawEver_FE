@@ -5,28 +5,52 @@ import arrowIcon from "../assets/icons/arrow.svg";
 interface DropdownProps {
   options: string[];
   width?: number;
-  onSelect?: (value: string) => void;
   className?: string;
+  value?: string;
+  defaultValue?: string;
+  onChange?: (value: string) => void;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
   options,
   width,
-  onSelect,
   className,
+  value,
+  defaultValue,
+  onChange,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState(options[0] || "");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const toggleDropdown = () => setIsOpen(!isOpen);
+  // 드롭다운 열림/닫힘 상태
+  const [isOpen, setIsOpen] = useState(false);
 
-  const handleSelect = (value: string) => {
-    setSelected(value);
-    onSelect && onSelect(value);
+  // 내부에서 관리할 선택 상태 (Uncontrolled 시에만 사용)
+  const [internalValue, setInternalValue] = useState<string>(() => {
+    return defaultValue ?? options[0] ?? "";
+  });
+
+  // 실제로 렌더링할 "표시 텍스트": Controlled vs Uncontrolled
+  const displayValue = value !== undefined ? value : internalValue;
+
+  // 드롭다운 열기/닫기
+  const toggleDropdown = () => setIsOpen((prev) => !prev);
+
+  // 항목 선택 시 처리
+  const handleSelect = (selectedOption: string) => {
+    // 만약 Controlled 모드(value prop 있음)라면, 내부 state를 바꾸지 않고 onChange만 호출
+    if (value === undefined) {
+      // Uncontrolled 모드라면 내부 state 업데이트
+      setInternalValue(selectedOption);
+    }
+
+    // 부모에 알림
+    onChange?.(selectedOption);
+
+    // 드롭다운 닫기
     setIsOpen(false);
   };
 
+  // 드롭다운 영역 밖을 클릭 시 닫힘 처리
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -37,23 +61,26 @@ const Dropdown: React.FC<DropdownProps> = ({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   return (
     <div
+      ref={dropdownRef}
       className="relative border-[1px] hover:border-main bg-white rounded-lg"
       style={{ width: width ? `${width}px` : undefined }}
-      ref={dropdownRef}
     >
       <button
+        type="button"
         onClick={toggleDropdown}
         className={twMerge(
-          `px-4 py-2 focus:outline-none text-base w-full text-left`,
+          `px-4 py-2 w-full text-left text-base focus:outline-none`,
           className
         )}
       >
-        {selected}
+        {displayValue}
         <img
           src={arrowIcon}
           alt="arrow"
@@ -62,6 +89,7 @@ const Dropdown: React.FC<DropdownProps> = ({
           }`}
         />
       </button>
+
       {isOpen && (
         <ul className="absolute z-10 mt-1 w-full border-[1px] border-main bg-white rounded-lg shadow-lg max-h-60 overflow-auto">
           {options.map((option, index) => (

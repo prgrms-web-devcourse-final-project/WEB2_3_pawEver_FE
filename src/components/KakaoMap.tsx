@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 
-// window.kakao에 대한 타입 선언
 declare global {
   interface Window {
     kakao: any;
@@ -11,16 +10,16 @@ interface Shelter {
   name: string;
   latitude: number;
   longitude: number;
-  phone?: string; // 전화번호
-  distance?: number; // 사용자 위치로부터 거리 (미터)
+  phone?: string;
+  distance?: number;
 }
 
 interface KakaoMapProps {
   width: string;
   height: string;
-  centerLat: number; // 기본 지도 중심 위도
-  centerLng: number; // 기본 지도 중심 경도
-  markers?: Shelter[]; // 표시할 보호소(마커) 목록
+  centerLat: number;
+  centerLng: number;
+  markers?: Shelter[];
   selectedShelter?: Shelter | null;
 }
 
@@ -32,7 +31,7 @@ function formatDistance(distance?: number): string {
     const km = (distance / 1000).toFixed(2);
     return `${km}km`;
   }
-  return `${distance}m`; // 999m 이하
+  return `${distance}m`;
 }
 
 // 이름 길이 제한 (15글자)

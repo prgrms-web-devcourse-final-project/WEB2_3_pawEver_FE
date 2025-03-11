@@ -1,28 +1,65 @@
-import { useState } from "react";
-import SidebarM from "./SidebarM";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/authStore";
+import { toast } from "react-hot-toast";
 import ButtonComponent from "../../common/ButtonComponent";
 import logo from "../../assets/icons/logo.svg";
+import SidebarM from "./SidebarM";
+import LoginModal from "./LoginModal";
+import LoadingSpinner from "../../common/LoadingSpinner";
 
 export default function Header() {
-  const [isLoggined, setIsLoggined] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleQuickLogin = () => setIsLoggined(true);
-  const handleLogout = () => setIsLoggined(false);
+  // Zustand 스토어에서 로그인 상태와 액션, 사용자 정보, isProfileUpdating 가져오기
+  const { isLoggedIn, userInfo, logout, isProfileUpdating } = useAuthStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleOpenLoginModal = () => {
+      setIsModalOpen(true);
+    };
+    window.addEventListener("openLoginModal", handleOpenLoginModal);
+    return () => {
+      window.removeEventListener("openLoginModal", handleOpenLoginModal);
+    };
+  }, []);
+
+  // 로그아웃 버튼 클릭 시
+  const handleLogout = async () => {
+    await logout();
+    toast.success("로그아웃 되었습니다!", { duration: 1500 });
+    const currentPath = window.location.pathname;
+    const isChangingPath = currentPath.includes("/UserPage");
+    if (isChangingPath) {
+      navigate("/");
+    }
+  };
+
   const handleIsMenuOpen = () => setIsMenuOpen((prev) => !prev);
+  const handleLoginClick = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
 
+  // 프로필 클릭 시 사용자 페이지 이동
+  const handleProfileClick = () => {
+    if (userInfo?.id) {
+      navigate(`/UserPage/${userInfo.id}`);
+    }
+  };
+
+  // 라우트 링크들
   const navLinks = [
     { to: "/AnimalBoard", label: "입양동물찾기" },
     { to: "/Community", label: "커뮤니티" },
-    { to: "/EditReservation", label: "예약/상담" },
     { to: "/Donation", label: "후원하기" },
   ];
 
   return (
     <header className="sticky top-0 z-50 w-full">
       <div className="bg-white w-full">
-        <div className="max-w-[1200px] mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-[1200px] mx-auto py-4 flex items-center justify-between">
+          {/* Left Section: 로고 + 네비게이션 */}
           <div className="flex items-center space-x-8">
             <Link
               to="/"
@@ -43,20 +80,47 @@ export default function Header() {
               ))}
             </nav>
           </div>
-
+          {/* Right Section: 로그인/로그아웃 + 프로필 */}
           <div className="hidden md:flex items-center space-x-4">
-            {isLoggined ? (
-              <ButtonComponent
-                onClick={handleLogout}
-                bgcolor="white"
-                text="black"
-                className="border-[1px] border-gray-300 hover:bg-white font-medium"
-              >
-                로그아웃
-              </ButtonComponent>
+            {isLoggedIn ? (
+              <>
+                {userInfo &&
+                  (isProfileUpdating ? (
+                    <div className="flex items-center justify-center w-[80px] h-9">
+                      <LoadingSpinner />
+                    </div>
+                  ) : (
+                    <div
+                      className="flex items-center cursor-pointer space-x-2"
+                      onClick={handleProfileClick}
+                    >
+                      <img
+                        src={
+                          userInfo.picture ||
+                          "https://via.placeholder.com/36?text=Profile"
+                        }
+                        alt="프로필 이미지"
+                        className="w-9 h-9 rounded-full object-cover"
+                      />
+                      <span className="text-base font-medium">
+                        {userInfo.name || "사용자"}
+                      </span>
+                    </div>
+                  ))}
+
+                {/* 로그아웃 버튼 */}
+                <ButtonComponent
+                  onClick={handleLogout}
+                  bgcolor="white"
+                  text="black"
+                  className="border-[1px] border-gray-300 hover:bg-white font-medium"
+                >
+                  로그아웃
+                </ButtonComponent>
+              </>
             ) : (
               <ButtonComponent
-                onClick={handleQuickLogin}
+                onClick={handleLoginClick}
                 bgcolor="white"
                 text="black"
                 className="border-[1px] border-gray-300 hover:bg-white font-medium"
@@ -73,6 +137,9 @@ export default function Header() {
             </ButtonComponent>
           </div>
           <SidebarM isOpen={isMenuOpen} onClose={handleIsMenuOpen} />
+
+          {/* 로그인 모달 */}
+          <LoginModal isOpen={isModalOpen} onClose={handleCloseModal} />
         </div>
       </div>
     </header>
