@@ -8,4 +8,5 @@ export interface PostType {
   content: string;
   images: string[];
   createdAt: string;
+  updatedAt: string;
 }

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useAuthStore } from "../../../store/authStore";
 import { CommentType } from "../../../types/Comment";
-import getRelativeTime from "../../../utils/getRelativeTime";
 import DeleteModal from "./DeleteModal";
+import formatDate from "../../../utils/formatDate";
 
 interface CommentProps {
   comment: CommentType;
@@ -19,7 +19,8 @@ export default function Comment({
   onUpdateComment,
   onDeleteComment,
 }: CommentProps) {
-  // const { userInfo } = useAuthStore();
+  const { userInfo } = useAuthStore();
+  const isAuthor = userInfo?.id === comment.userUuid;
 
   const [edit, setEdit] = useState<boolean>(false);
   const [editcomment, setEditcomment] = useState<string>(comment.content);
@@ -79,17 +80,13 @@ export default function Comment({
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold">{comment.username}</span>
           <span className="text-xs text-gray-400">
-            {getRelativeTime(
-              new Date(
-                comment.updatedAt ? comment.updatedAt : comment.createdAt
-              ).getTime()
+            {formatDate(
+              comment.updatedAt ? comment.updatedAt : comment.createdAt
             )}
           </span>
         </div>
         <div className="text-sm text-gray-700 mt-1">{comment.content}</div>
-        {/* 삭제 버튼: 본인 댓글인 경우에만 표시 */}
-        {/* String(userId) === userInfo?.id && */}
-        {
+        {isAuthor && (
           <div className="text-xs mt-2">
             <button
               className="text-gray-500 mr-2"
@@ -104,7 +101,7 @@ export default function Comment({
               삭제
             </button>
           </div>
-        }
+        )}
       </div>
       {deleteModalOpen && (
         <DeleteModal

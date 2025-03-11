@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import defaultImg from "../../../assets/images/exampleAnimal.png";
+import defaultImg from "../../../assets/images/defaultThumbnail.svg";
 import { PostType } from "../../../types/Post";
-import getRelativeTime from "../../../utils/getRelativeTime";
+import formatDate from "../../../utils/formatDate";
 
 export default function CommunityCard({
   id,
@@ -10,20 +10,20 @@ export default function CommunityCard({
   thumbnailImage,
   title,
   createdAt,
+  updatedAt,
 }: PostType) {
   return (
     <Link to={`/community/${id}`} className="cursor-pointer">
       <div className="w-full min-w-[150px] max-w-[320px] bg-white rounded-lg shadow-md flex flex-col">
-        {/* 16:9 비율 유지 */}
-        <div className="w-full aspect-video rounded-lg overflow-hidden">
+        <div className="w-full aspect-video overflow-hidden rounded-t-lg shadow-sm">
           <img
             src={thumbnailImage ? thumbnailImage : defaultImg}
             alt="thumbnail"
-            className="w-full h-full object-cover cursor-pointer"
+            className="w-full h-full object-cover object-center"
           />
         </div>
         <div className="m-3">
-          <p className="font-medium text-xl">{title}</p>
+          <p className="font-medium text-xl line-clamp-1">{title}</p>
           <div className="flex gap-1 items-center text-xs text-gray-500">
             <img
               src={profileImage}
@@ -32,7 +32,7 @@ export default function CommunityCard({
             />
             <p>{author}</p>
             <p className="pl-1">
-              {getRelativeTime(new Date(createdAt).getTime())}
+              {formatDate(updatedAt ? updatedAt : createdAt)}
             </p>
           </div>
         </div>

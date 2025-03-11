@@ -8,6 +8,8 @@ import {
 import { useAuthStore } from "../../../store/authStore";
 import Comment from "./Comment";
 import { CommentType } from "../../../types/Comment";
+import toast from "react-hot-toast";
+import commenticon from "../../../assets/icons/comment.svg";
 
 export default function CommentSection({
   post_Id,
@@ -20,12 +22,10 @@ export default function CommentSection({
   const [comment, setComment] = useState<string>("");
   const [showButtons, setShowButtons] = useState(false);
 
-  // 댓글 목록
   const getCommentData = async () => {
     if (!post_Id) return;
     try {
       const data = await getComment(post_Id);
-      console.log("댓글", data);
       setCommentList(data.replies);
     } catch (err) {
       console.log(err);
@@ -37,7 +37,6 @@ export default function CommentSection({
     getCommentData();
   }, [post_Id]);
 
-  // 댓글 등록
   const handleSubmitComment = async () => {
     if (!post_Id || !comment.trim()) return;
     try {
@@ -45,12 +44,25 @@ export default function CommentSection({
       setComment("");
       setShowButtons(false);
       setCommentList((prev) => [...prev, response.data]);
+      toast.success("댓글이 작성되었습니다.", {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "#09ACFB",
+          color: "#FFFFFF",
+          border: "1px solid #0187EE",
+        },
+
+        iconTheme: {
+          primary: "#FFFFFF",
+          secondary: "#09ACFB",
+        },
+      });
     } catch (err) {
       console.log(err);
     }
   };
 
-  // 댓글 삭제
   const confirmDelete = async (postId: number, replyId: number) => {
     if (!postId || !replyId) return;
 
@@ -59,12 +71,25 @@ export default function CommentSection({
       setCommentList((prev) =>
         prev.filter((comment) => comment.replyId !== replyId)
       );
+      toast.success("댓글이 삭제되었습니다.", {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "#09ACFB",
+          color: "#FFFFFF",
+          border: "1px solid #0187EE",
+        },
+
+        iconTheme: {
+          primary: "#FFFFFF",
+          secondary: "#09ACFB",
+        },
+      });
     } catch (err) {
-      console.log("게시글 삭제 실패", err);
+      console.log(err);
     }
   };
 
-  // 댓글 수정
   const handleEditComment = async (
     postId: number,
     replyId: number,
@@ -80,6 +105,20 @@ export default function CommentSection({
             : comment
         )
       );
+      toast.success("댓글이 수정되었습니다.", {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "#09ACFB",
+          color: "#FFFFFF",
+          border: "1px solid #0187EE",
+        },
+
+        iconTheme: {
+          primary: "#FFFFFF",
+          secondary: "#09ACFB",
+        },
+      });
     } catch (err) {
       console.log(err);
     }
@@ -87,7 +126,6 @@ export default function CommentSection({
   return (
     <div>
       <span className="text-lg font-semibold">댓글 {commentList.length}개</span>
-      {/* 댓글 입력 */}
       {userInfo && (
         <div className="mt-4">
           <div className="flex items-start gap-3">
@@ -129,10 +167,17 @@ export default function CommentSection({
         </div>
       )}
 
-      {/* 댓글 목록 */}
       <div className="mt-6 space-y-4">
         {commentList.length === 0 ? (
-          <p>작성된 댓글이 없습니다!</p>
+          <div className="flex flex-col items-center pt-5 gap-2">
+            <img src={commenticon} alt="commenticon" className="w-14 h-w-14" />
+            <p className="font-semibold text-xl text-gray-500">
+              아직 댓글이 없습니다.
+            </p>
+            <p className="font-medium text-sm text-gray-400">
+              첫 번째 댓글을 남겨보세요!
+            </p>
+          </div>
         ) : (
           commentList.map((comment) => (
             <Comment

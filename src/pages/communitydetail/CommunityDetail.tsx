@@ -1,31 +1,40 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import more from "../../assets/icons/more.svg";
 import { useNavigate, useParams } from "react-router-dom";
 import { PostType } from "../../types/Post";
-import getRelativeTime from "../../utils/getRelativeTime";
 import { deletePost, getPost } from "../../api/fetchPost";
 import DeleteModal from "./components/DeleteModal";
 import CommentSection from "./components/CommentSection";
 import { Viewer } from "@toast-ui/react-editor";
 import Button from "../../common/ButtonComponent";
 import { useAuthStore } from "../../store/authStore";
+import formatDate from "../../utils/formatDate";
+import toast from "react-hot-toast";
+import LoadingSpinner from "../../common/LoadingSpinner";
 
 export default function CommunityDetail() {
-  // "2025년 3월 5일"
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
   const [post, setPost] = useState<PostType | null>(null);
   const [contentWithImages, setContentWithImages] = useState<string>("");
-  // more
   const [showEditDelete, setShowEditDelete] = useState<boolean>(false);
-  // 글 삭제 모달
   const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
+  const editRef = useRef<HTMLDivElement>(null);
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (editRef.current && !editRef.current.contains(event.target as Node))
+      setShowEditDelete(false);
+  };
+
+  useEffect(() => {
+    if (showEditDelete) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showEditDelete]);
 
   const toggleEditDelete = () => {
     setShowEditDelete((prev) => !prev);
@@ -46,7 +55,6 @@ export default function CommunityDetail() {
     try {
       const data = await getPost(postId);
 
-      console.log(data);
       setPost(data);
 
       const { content, images } = data;
@@ -63,24 +71,36 @@ export default function CommunityDetail() {
   }, [postId]);
 
   const { userInfo } = useAuthStore();
-  console.log(userInfo?.id);
   const isAuthor = userInfo?.id === String(post?.userUuid);
   const navigate = useNavigate();
 
-  // 글 수정
   const editPost = () => {
     if (!postId) return;
     navigate(`/EditCommunity/${postId}`);
   };
-  // 글 삭제
+
   const confirmDelete = async () => {
     if (!postId) return;
 
     try {
       await deletePost(postId);
       navigate("/community");
+      toast.success("게시글이 삭제되었습니다.", {
+        duration: 3000,
+        position: "top-center",
+        style: {
+          background: "#09ACFB",
+          color: "#FFFFFF",
+          border: "1px solid #0187EE",
+        },
+
+        iconTheme: {
+          primary: "#FFFFFF",
+          secondary: "#09ACFB",
+        },
+      });
     } catch (err) {
-      console.log("게시글 삭제 실패", err);
+      console.log(err);
     }
   };
   const cancelDelete = () => {
@@ -90,7 +110,7 @@ export default function CommunityDetail() {
   if (!post) {
     return (
       <div className="p-6">
-        <p>Loading...</p>
+        <LoadingSpinner />
         <Button onClick={() => navigate(-1)}>뒤로가기</Button>
       </div>
     );
@@ -99,7 +119,6 @@ export default function CommunityDetail() {
   return (
     <section className="w-full my-8">
       <div className="max-w-[640px] mx-auto px-4">
-        {/* 동물 카드 (임시 이미지) */}
         {post.thumbnailImage && (
           <img
             src={post.thumbnailImage}
@@ -107,7 +126,6 @@ export default function CommunityDetail() {
             className="object-cover w-full"
           />
         )}
-        {/* 게시물 제목, 작성자, 시간 */}
         <div className="relative flex mt-6">
           <h1 className="text-2xl font-bold">{post.title}</h1>
           {isAuthor && (
@@ -119,7 +137,10 @@ export default function CommunityDetail() {
             </button>
           )}
           {showEditDelete && (
-            <div className="absolute right-0 top-5 mt-2 flex flex-col bg-white shadow-md rounded">
+            <div
+              ref={editRef}
+              className="absolute right-0 top-5 mt-2 flex flex-col bg-white shadow-md rounded"
+            >
               <button
                 className="px-4 py-1 hover:bg-gray-100"
                 onClick={editPost}
@@ -135,20 +156,21 @@ export default function CommunityDetail() {
             </div>
           )}
         </div>
-        <div className="text-sm text-gray-500 mt-2 flex gap-2">
+        <div className="text-sm text-gray-500 mt-2 flex items-center gap-2 pb-3 border-b">
+          <img
+            src={post.profileImage}
+            alt="작성자 프로필"
+            className="w-6 h-6 rounded-full"
+          />
           <span>{post.author}</span>
           <span>{formatDate(post.createdAt)}</span>
-          <span>{getRelativeTime(new Date(post.createdAt).getTime())}</span>
         </div>
-        {/* 게시물 본문 내용 */}
         <div className="my-8 text-base leading-relaxed">
           <Viewer initialValue={contentWithImages} />
         </div>
-        {/* 댓글 섹션 */}
         <CommentSection post_Id={post.id} />
       </div>
 
-      {/* 삭제확인 모달*/}
       {deleteModalOpen && (
         <DeleteModal onCancel={cancelDelete} onConfirm={confirmDelete} />
       )}
