@@ -175,7 +175,7 @@ export default function UserProfile() {
               {userInfo?.email || "example@gmail.com"}
             </p>
             <p
-              className={`text-md text-gray-500 text-start sm:text-left ${
+              className={`text-md text-gray-500 text-center sm:text-left ${
                 isUserPage ? "w-[70%]" : "w-full"
               }`}
             >

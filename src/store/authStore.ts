@@ -40,12 +40,16 @@ interface AuthState {
   error: string | null;
   processingCode: string | null;
   redirectPath: string;
+  justLoggedOut: boolean;
 
   resetState: () => void;
   setLoading: (flag: boolean) => void;
   setError: (msg: string | null) => void;
   setRedirectPath: (path: string) => void;
   setProfileUpdating: (flag: boolean) => void;
+
+  // 추가: 로그아웃 직후 플래그를 설정하는 함수
+  setJustLoggedOut: (flag: boolean) => void;
 
   // 로그인/로그아웃
   login: (userData: UserInfo) => Promise<void>;
@@ -78,6 +82,7 @@ export const useAuthStore = create<AuthState>()(
       error: null,
       processingCode: null,
       redirectPath: "/",
+      justLoggedOut: false, // 추가: 로그아웃 직후 여부
 
       resetState: () => {
         set({
@@ -96,6 +101,11 @@ export const useAuthStore = create<AuthState>()(
       setError: (msg) => set({ error: msg }),
       setRedirectPath: (path) => set({ redirectPath: path }),
 
+      // 추가: setJustLoggedOut 함수
+      setJustLoggedOut: (flag: boolean) => {
+        set({ justLoggedOut: flag });
+      },
+
       login: async (userData: UserInfo) => {
         if (userData?.accessToken) {
           authAxiosInstance.defaults.headers.common[
@@ -107,6 +117,7 @@ export const useAuthStore = create<AuthState>()(
           isLoggedIn: true,
           userInfo: userData,
           error: null,
+          justLoggedOut: false, // 로그인 시에는 플래그 해제
         });
       },
 
@@ -121,6 +132,8 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null,
             processingCode: null,
+            // 로그아웃 직후 플래그
+            justLoggedOut: true,
           });
 
           // 소셜로그인 세션 스토리지 정리
@@ -416,6 +429,7 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
+//
 function cleanupUrlParams() {
   const url = new URL(window.location.href);
   ["code", "state", "error", "scope", "authuser", "prompt"].forEach((p) =>

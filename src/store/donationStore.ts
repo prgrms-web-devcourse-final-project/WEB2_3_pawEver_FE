@@ -350,6 +350,8 @@ export const useDonationStore = create<DonationStoreState>((set, get) => ({
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
+          validateStatus: (status) =>
+            (status >= 200 && status < 300) || status === 304,
         }
       );
 
