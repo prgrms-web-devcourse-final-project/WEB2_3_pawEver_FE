@@ -35,7 +35,6 @@ export default function App() {
     handleOAuthCallback,
     loadUserProfileFromDB,
     updateUserInfo,
-    login,
   } = useAuthStore();
 
   const [isRestored, setIsRestored] = useState(false);
