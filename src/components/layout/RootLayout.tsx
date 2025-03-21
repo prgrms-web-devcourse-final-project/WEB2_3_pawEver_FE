@@ -6,7 +6,7 @@ import { useScrollRestoration } from "../../hooks/useScrollRestoration";
 export default function RootLayout() {
   useScrollRestoration();
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen px-4">
       <Header />
       <main className="w-full">
         <div className="max-w-[1200px] mx-auto min-h-[calc(100vh-200px)]">
