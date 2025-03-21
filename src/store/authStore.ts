@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import authAxiosInstance from "../api/authAxiosInstance";
+import pkceUtils from "../utils/pkceUtils";
 import axios from "axios";
 
 export interface UserInfo {
@@ -13,7 +14,7 @@ export interface UserInfo {
 }
 
 //소셜 로그인 요청 페이로드
-interface SocialLoginPayload {
+export interface SocialLoginPayload {
   socialLoginUuid: string;
   name?: string;
   profileImageUrl?: string;
@@ -21,14 +22,6 @@ interface SocialLoginPayload {
   socialLoginProvider: string;
   latitude: number;
   longitude: number;
-}
-
-//서버 응답 바디: { isSuccess, status, code, ... }
-interface AuthResponseBody {
-  isSuccess: boolean;
-  status: string;
-  code: string;
-  message?: string;
 }
 
 /* Zustand 상태 */
@@ -111,6 +104,7 @@ export const useAuthStore = create<AuthState>()(
           authAxiosInstance.defaults.headers.common[
             "Authorization"
           ] = `Bearer ${userData.accessToken}`;
+          sessionStorage.setItem("auth_access_token", userData.accessToken);
         }
 
         set({
@@ -126,6 +120,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           delete authAxiosInstance.defaults.headers.common["Authorization"];
+          sessionStorage.removeItem("auth_access_token");
           set({
             isLoggedIn: false,
             userInfo: null,
@@ -140,6 +135,8 @@ export const useAuthStore = create<AuthState>()(
           sessionStorage.removeItem("googleOAuthState");
           sessionStorage.removeItem("kakaoOAuthState");
           sessionStorage.removeItem("loginProvider");
+          sessionStorage.removeItem("pkce_code_verifier");
+          sessionStorage.removeItem("pre_login_jwt");
         } catch (error) {
           console.error("[AuthStore] 로그아웃 중 오류:", error);
           set({
@@ -152,7 +149,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      googleLoginInit: () => {
+      googleLoginInit: async () => {
         const { isLoading, setLoading, setError } = get();
         if (isLoading) return;
 
@@ -163,6 +160,21 @@ export const useAuthStore = create<AuthState>()(
           const state = Math.random().toString(36).substring(2, 15);
           sessionStorage.setItem("googleOAuthState", state);
           sessionStorage.setItem("loginProvider", "google");
+
+          // PKCE 코드 생성 및 프리로그인 처리
+          const codeVerifier = pkceUtils.generateCodeVerifier();
+          const codeChallenge = await pkceUtils.generateCodeChallenge(
+            codeVerifier
+          );
+
+          // 세션 스토리지에 codeVerifier 저장
+          sessionStorage.setItem("pkce_code_verifier", codeVerifier);
+
+          // 프리로그인 요청 보내고 JWT 받기
+          const preLoginJwt = await pkceUtils.requestPreLogin(codeChallenge);
+
+          // 필드명 일관성을 위해 pre_login_jwt로 저장
+          sessionStorage.setItem("pre_login_jwt", preLoginJwt);
 
           const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
           const redirectUri = import.meta.env.VITE_REDIRECT_URI || "";
@@ -180,7 +192,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      kakaoLoginInit: () => {
+      kakaoLoginInit: async () => {
         const { isLoading, setLoading, setError } = get();
         if (isLoading) return;
 
@@ -191,6 +203,21 @@ export const useAuthStore = create<AuthState>()(
           const state = Math.random().toString(36).substring(2, 15);
           sessionStorage.setItem("kakaoOAuthState", state);
           sessionStorage.setItem("loginProvider", "kakao");
+
+          // PKCE 코드 생성 및 프리로그인 처리
+          const codeVerifier = pkceUtils.generateCodeVerifier();
+          const codeChallenge = await pkceUtils.generateCodeChallenge(
+            codeVerifier
+          );
+
+          // 세션 스토리지에 codeVerifier 저장
+          sessionStorage.setItem("pkce_code_verifier", codeVerifier);
+
+          // 프리로그인 요청 보내고 JWT 받기
+          const preLoginJwt = await pkceUtils.requestPreLogin(codeChallenge);
+
+          // 필드명 일관성을 위해 pre_login_jwt로 저장
+          sessionStorage.setItem("pre_login_jwt", preLoginJwt);
 
           const clientId = import.meta.env.VITE_KAKAO_CLIENT_ID || "";
           const redirectUri = import.meta.env.VITE_REDIRECT_URI || "";
@@ -218,12 +245,12 @@ export const useAuthStore = create<AuthState>()(
           const code = urlParams.get("code");
           if (!code) return;
 
-          // 같은 code로 중복처리 방지
+          // 중복 처리 방지
           if (get().processingCode === code) {
             return;
           }
 
-          // 소셜 인증 콜백 전역 로딩 시작
+          // 로딩 상태 설정
           set({
             processingCode: code,
             isLoading: true,
@@ -248,13 +275,20 @@ export const useAuthStore = create<AuthState>()(
             return;
           }
 
-          // 보안검증
+          // 상태 검증
           const savedState = sessionStorage.getItem(`${provider}OAuthState`);
           if (state !== savedState) {
             throw new Error("보안 검증 실패. 다시 시도해 주세요.");
           }
 
-          // 소셜에서 사용자 기본 정보 획득
+          // PKCE 코드 검증자와 프리로그인 JWT 가져오기
+          const codeVerifier = sessionStorage.getItem("pkce_code_verifier");
+          const preLoginJwt = sessionStorage.getItem("pre_login_jwt");
+          if (!codeVerifier || !preLoginJwt) {
+            throw new Error("PKCE 정보가 누락되었습니다.");
+          }
+
+          // 소셜 로그인 정보 획득
           let socialPayload: SocialLoginPayload;
           if (provider === "google") {
             const googleData = await fetchGoogleTokenAndUserData(code);
@@ -268,7 +302,6 @@ export const useAuthStore = create<AuthState>()(
               longitude: 127.269311,
             };
           } else {
-            // kakao
             const kakaoData = await fetchKakaoTokenAndUserData(code);
             socialPayload = {
               socialLoginUuid: kakaoData.userData.id.toString(),
@@ -281,41 +314,42 @@ export const useAuthStore = create<AuthState>()(
             };
           }
 
-          // 백엔드 로그인 요청
-          const { isSuccess, message, accessToken } = await requestBackendLogin(
-            socialPayload
+          const accessToken = await pkceUtils.requestFinalLogin(
+            socialPayload,
+            codeVerifier,
+            preLoginJwt
           );
-          if (!isSuccess || !accessToken) {
-            throw new Error(
-              `백엔드 로그인 실패: ${message || "알 수 없는 오류"}`
-            );
+
+          if (!accessToken) {
+            throw new Error("최종 로그인 실패: accessToken 없음");
           }
 
-          // 우선 소셜 정보를 기준으로 userInfo 구성
+          // 사용자 정보 설정
           const newUserInfo = {
             id: socialPayload.socialLoginUuid,
             name: socialPayload.name || "",
             email: socialPayload.email || "",
             picture: socialPayload.profileImageUrl,
-            introduction: undefined, // DB에서 다시 불러올 예정
+            introduction: undefined,
             accessToken,
           };
 
-          // Zustand 로그인
+          // 로그인 상태 저장
           await login(newUserInfo);
 
-          // ★ DB 프로필 로딩 구간만 별도 스피너 처리
+          // 사용자 프로필 로드
           setProfileUpdating(true);
-
           await loadUserProfileFromDB();
           setProfileUpdating(false);
 
-          // 파라미터 정리
+          // 세션 스토리지 정리
           cleanupUrlParams();
+          sessionStorage.removeItem("pkce_code_verifier");
+          sessionStorage.removeItem("pre_login_jwt");
           sessionStorage.removeItem(`${provider}OAuthState`);
           sessionStorage.removeItem("loginProvider");
 
-          // 최종 리다이렉트
+          // 리다이렉트
           set({ processingCode: null });
           const redirectTo = get().redirectPath || "/";
           window.location.replace(redirectTo);
@@ -332,7 +366,6 @@ export const useAuthStore = create<AuthState>()(
             processingCode: null,
           });
         } finally {
-          // 전체 소셜 로그인 프로세스 종료
           set({ isLoading: false, isProfileUpdating: false });
         }
       },
@@ -507,58 +540,4 @@ async function fetchKakaoTokenAndUserData(code: string) {
     userData: userRes.data,
     accessToken: tokenRes.data.access_token,
   };
-}
-
-/**
- * /api/auth/tokens 호출
- * - 응답 body는 { isSuccess, status, code, ... }
- * - 응답 헤더에 Authorization(AccessToken)
- */
-async function requestBackendLogin(payload: SocialLoginPayload) {
-  try {
-    const resp = await authAxiosInstance.post<AuthResponseBody>(
-      "/api/auth/tokens",
-      payload,
-      { withCredentials: true }
-    );
-
-    // 헤더에서 AccessToken 추출
-    const newAccessToken = resp.headers.authorization?.replace("Bearer ", "");
-
-    if (!newAccessToken) {
-      return {
-        isSuccess: false,
-        message: "응답에 AccessToken이 없습니다.",
-        accessToken: "",
-      };
-    }
-
-    // body는 단순 { isSuccess, status, code } 구조
-    const data = resp.data;
-    return {
-      isSuccess: data.isSuccess,
-      status: data.status,
-      code: data.code,
-      message: data.message,
-      accessToken: newAccessToken,
-    };
-  } catch (error) {
-    console.error("[requestBackendLogin] 오류:", error);
-    if (axios.isAxiosError(error) && error.response?.data) {
-      const eData = error.response.data as any;
-      return {
-        isSuccess: false,
-        message: eData?.message || "로그인 API 오류",
-        accessToken: "",
-      };
-    }
-    return {
-      isSuccess: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : "로그인 처리 중 알 수 없는 오류",
-      accessToken: "",
-    };
-  }
 }

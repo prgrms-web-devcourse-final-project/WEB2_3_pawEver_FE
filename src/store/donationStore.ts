@@ -172,15 +172,15 @@ export const useDonationStore = create<DonationStoreState>((set, get) => ({
       // Toss Payments SDK 로드
       const tossPayments = await loadTossPayments(CLIENT_KEY);
 
-      // 결제창 호출
+      // 결제창 호출, 라우팅 대소문자 불일치문제
       await tossPayments.requestPayment(
         donationForm.paymentMethod === "card" ? "카드" : "계좌이체",
         {
           amount: amountNum,
           orderId,
           orderName: donationForm.message || "후원 결제",
-          successUrl: `${BASE_URL}/donation/success?donationId=${donationId}`,
-          failUrl: `${BASE_URL}/donation/fail`,
+          successUrl: `${BASE_URL}/Donation/success?donationId=${donationId}`,
+          failUrl: `${BASE_URL}/Donation/fail`,
         }
       );
     } catch (error: any) {
